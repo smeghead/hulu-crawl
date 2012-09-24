@@ -40,7 +40,7 @@ sub exists_check {
     my @new_videos = ();
     V: for my $nv (@$adds) {
         for my $v (@$vs) {
-            print 'exists ' . encode_utf8($v->{title}) if $v->{url} eq $adds->[0]->{url};
+            print 'exists ' . encode_utf8($v->{title}) if $v->{url} eq $adds->[0]->{url}, "\n";
             next V if $v->{url} eq $adds->[0]->{url};
         }
         push @new_videos, $nv;
@@ -66,7 +66,6 @@ my @videos = ();
 for my $p (1 .. 100) {
     my $content = LWP::UserAgent->new->request(HTTP::Request->new(GET => $api_url . $p))->content;
     $content = decode_utf8($content);
-    print 'content utf8', Encode::is_utf8($content), "\n";
     my @adds = parse_videos($content);
     @adds = exists_check(\@videos, \@adds);
     last unless scalar @adds;
@@ -85,10 +84,9 @@ for my $v (@videos) {
     if (my $old = $sth->fetchrow_hashref) {
         if ($old->{seasons} != $v->{seasons} or $old->{episodes} != $v->{episodes}) {
             print 'changed.', "\n";
-            print 'is_utf8: ' . Encode::is_utf8($v->{title}), "\n";
             my $message = 
                 '[' . $v->{title} . '] が更新されました。' .
-                $old->{seasons} . '(' . $old->{episodes} . ') -> ' . $v->{seasons} . '(' . $v->{episodes} . ')';
+                $old->{seasons} . '(' . $old->{episodes} . ') -> ' . $v->{seasons} . '(' . $v->{episodes} . ') ' . $v->{url};
             twitter_post($message);
             print encode_utf8($message), "\n";
 
@@ -100,8 +98,7 @@ for my $v (@videos) {
             ) or die 'failed to update. url:' . $v->{title};
         }
     } else {
-        print 'is_utf8: ' . Encode::is_utf8($v->{title}), "\n";
-        my $message = '[' . $v->{title} . '] が追加されました。';
+        my $message = '[' . $v->{title} . '] が追加されました。' . $v->{url};
         twitter_post($message);
         print encode_utf8($message), "\n";
         $sth = $dbh->prepare('insert into videos (url, title, seasons, episodes, created_at, updated_at) values (?, ?, ?, ?, current_timestamp, current_timestamp)');
