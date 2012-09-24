@@ -80,7 +80,7 @@ sub twitter_post {
         access_token_secret => 'eDi9SyJiuonY691OYpCDe19CiaSCDiDtNrnOV8YHUM',
     );
 
-#     $nt->update($message) or die $@;
+    $nt->update($message) or die $@;
 }
 
 try {
