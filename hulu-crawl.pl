@@ -40,8 +40,8 @@ sub exists_check {
     my @new_videos = ();
     V: for my $nv (@$adds) {
         for my $v (@$vs) {
-            print 'exists ' . encode_utf8($v->{title}) if $v->{url} eq $adds->[0]->{url}, "\n";
-            next V if $v->{url} eq $adds->[0]->{url};
+#            print 'exists ' . encode_utf8($v->{url}) . "\n" if $v->{url} eq $nv->{url};
+            next V if $v->{url} eq $nv->{url};
         }
         push @new_videos, $nv;
     }
@@ -64,6 +64,7 @@ sub twitter_post {
 
 my @videos = ();
 for my $p (1 .. 100) {
+    print $p, ' ';
     my $content = LWP::UserAgent->new->request(HTTP::Request->new(GET => $api_url . $p))->content;
     $content = decode_utf8($content);
     my @adds = parse_videos($content);
@@ -75,7 +76,8 @@ for my $p (1 .. 100) {
 
 use DBI;
 use FindBin;
-my $dbh = DBI->connect('dbi:SQLite:dbname=' . $FindBin::Bin . '/videos.db', "", "", {PrintError => 1, AutoCommit => 0});
+print 'db: ', $FindBin::Bin . '/videos.db', "\n";
+my $dbh = DBI->connect('dbi:SQLite:dbname=' . $FindBin::Bin . '/videos.db', "", "", {PrintError => 1, AutoCommit => 1});
 
 for my $v (@videos) {
     my $select = "select * from videos where url = ?";
@@ -90,13 +92,13 @@ for my $v (@videos) {
             twitter_post($message);
             print encode_utf8($message), "\n";
 
-            $sth = $dbh->prepare('update videos set seasons = ?, episodes = ?, updated_at = current_timestamp where id = ?');
-            $sth->execute(
-                $v->{seasons},
-                $v->{episodes},
-                $old->{id},
-            ) or die 'failed to update. url:' . $v->{title};
         }
+        $sth = $dbh->prepare('update videos set seasons = ?, episodes = ?, updated_at = current_timestamp where id = ?');
+        $sth->execute(
+            $v->{seasons},
+            $v->{episodes},
+            $old->{id},
+        ) or die 'failed to update. url:' . $v->{title};
     } else {
         my $message = '[' . $v->{title} . '] が追加されました。' . $v->{url};
         twitter_post($message);
@@ -111,7 +113,6 @@ for my $v (@videos) {
     }
 }
 
-$dbh->commit;
 $dbh->disconnect;
 __END__
 
