@@ -31,7 +31,7 @@ my $logger = Log::Log4perl->get_logger('main');
 my $api_url = 'http://www2.hulu.jp/content?country=all&genre=all&type_group=all&ajax=true&page=';
 
 my %opts = ();
-getopts('p:', \%opts);
+getopts('n:', \%opts);
 
 sub get_wikipedia_contents {
     my ($dbh, $all_videos) = @_;
@@ -56,15 +56,16 @@ try {
     use DBI;
     my $dbh = DBI->connect('dbi:SQLite:dbname=' . $FindBin::Bin . '/videos.db', "", "", {PrintError => 1, AutoCommit => 1});
 
+    my $limit = defined $opts{n} ? int($opts{n}) : 10;
     # all_videos
     my $sth = $dbh->prepare(q{
         select v.* from videos as v
         left join wikipedias as w on w.video_id = v.id
         where w.id is null
         order by v.updated_at desc
-        limit 10
+        limit ?
     });
-    $sth->execute;
+    $sth->execute($limit);
 
     my @all_videos = ();
     while (my $row = $sth->fetchrow_hashref()){
