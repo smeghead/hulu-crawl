@@ -120,14 +120,14 @@ try {
                     '[' . $v->{title} . '] が更新されました。' .
                     $old->{seasons} . '(' . $old->{episodes} . ') -> ' . $v->{seasons} . '(' . $v->{episodes} . ') ' . $v->{url};
                 twitter_post($message);
-                $sth = $dbh->prepare('insert into updates (video_id, is_new, seasons, episodes, created_at, updated_at) values (?, 0, ?, ?, current_timestamp, current_timestamp)');
+                $sth = $dbh->prepare(q{insert into updates (video_id, is_new, seasons, episodes, created_at, updated_at) values (?, 0, ?, ?, datetime('now', 'localtime'), datetime('now', 'localtime'))});
                 $sth->execute(
                     $old->{id},
                     $v->{seasons},
                     $v->{episodes},
                 ) or die 'failed to insert. url:' . $v->{title};
             }
-            $sth = $dbh->prepare('update videos set seasons = ?, episodes = ?, updated_at = current_timestamp where id = ?');
+            $sth = $dbh->prepare(q{update videos set seasons = ?, episodes = ?, updated_at = datetime('now', 'localtime') where id = ?});
             $sth->execute(
                 $v->{seasons},
                 $v->{episodes},
@@ -136,7 +136,7 @@ try {
         } else {
             my $message = '[' . $v->{title} . '] が追加されました。' . $v->{url};
             twitter_post($message);
-            $sth = $dbh->prepare('insert into videos (url, title, seasons, episodes, created_at, updated_at) values (?, ?, ?, ?, current_timestamp, current_timestamp)');
+            $sth = $dbh->prepare(q{insert into videos (url, title, seasons, episodes, created_at, updated_at) values (?, ?, ?, ?, datetime('now', 'localtime'), datetime('now', 'localtime'))});
             $sth->execute(
                 $v->{url},
                 $v->{title},
@@ -145,7 +145,7 @@ try {
             ) or die 'failed to insert. url:' . $v->{title};
             my $last_insert_id = $dbh->func('last_insert_rowid');
             print 'new id:' . $last_insert_id, "\n";
-            $sth = $dbh->prepare('insert into updates (video_id, is_new, seasons, episodes, created_at, updated_at) values (?, 1, ?, ?, current_timestamp, current_timestamp)');
+            $sth = $dbh->prepare(q{insert into updates (video_id, is_new, seasons, episodes, created_at, updated_at) values (?, 1, ?, ?, datetime('now', 'localtime'), datetime('now', 'localtime'))});
             $sth->execute(
                 $last_insert_id,
                 $v->{seasons},

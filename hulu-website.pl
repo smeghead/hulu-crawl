@@ -159,52 +159,6 @@ try {
 
     create_video_pages($dbh, \@all_videos);
 
-#     for my $v (@videos) {
-#         $logger->debug($v->{url});
-#         my $select = "select * from videos where url = ?";
-#         my $sth = $dbh->prepare($select);
-#         $sth->execute($v->{url});
-#         if (my $old = $sth->fetchrow_hashref) {
-#             if ($old->{seasons} != $v->{seasons} or $old->{episodes} != $v->{episodes}) {
-#                 $logger->info('changed.');
-#                 my $message = 
-#                     '[' . $v->{title} . '] が更新されました。' .
-#                     $old->{seasons} . '(' . $old->{episodes} . ') -> ' . $v->{seasons} . '(' . $v->{episodes} . ') ' . $v->{url};
-#                 twitter_post($message);
-#                 $sth = $dbh->prepare('insert into updates (video_id, is_new, seasons, episodes, created_at, updated_at) values (?, 0, ?, ?, current_timestamp, current_timestamp)');
-#                 $sth->execute(
-#                     $old->{id},
-#                     $v->{seasons},
-#                     $v->{episodes},
-#                 ) or die 'failed to insert. url:' . $v->{title};
-#             }
-#             $sth = $dbh->prepare('update videos set seasons = ?, episodes = ?, updated_at = current_timestamp where id = ?');
-#             $sth->execute(
-#                 $v->{seasons},
-#                 $v->{episodes},
-#                 $old->{id},
-#             ) or die 'failed to update. url:' . $v->{title};
-#         } else {
-#             my $message = '[' . $v->{title} . '] が追加されました。' . $v->{url};
-#             twitter_post($message);
-#             $sth = $dbh->prepare('insert into videos (url, title, seasons, episodes, created_at, updated_at) values (?, ?, ?, ?, current_timestamp, current_timestamp)');
-#             $sth->execute(
-#                 $v->{url},
-#                 $v->{title},
-#                 $v->{seasons},
-#                 $v->{episodes},
-#             ) or die 'failed to insert. url:' . $v->{title};
-#             my $last_insert_id = $dbh->func('last_insert_rowid');
-#             print 'new id:' . $last_insert_id, "\n";
-#             $sth = $dbh->prepare('insert into updates (video_id, is_new, seasons, episodes, created_at, updated_at) values (?, 1, ?, ?, current_timestamp, current_timestamp)');
-#             $sth->execute(
-#                 $last_insert_id,
-#                 $v->{seasons},
-#                 $v->{episodes},
-#             ) or die 'failed to insert. url:' . $v->{title};
-#         }
-#     }
-
     $dbh->disconnect;
 } catch {
     $logger->error_die("caught error: $_");

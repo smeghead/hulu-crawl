@@ -43,7 +43,7 @@ sub get_wikipedia_contents {
 
         $logger->debug($entry->title) if $entry;
 
-        my $sth = $dbh->prepare('insert into wikipedias (video_id, title, content, created_at, updated_at) values (?, ?, ?, current_timestamp, current_timestamp)');
+        my $sth = $dbh->prepare(q{insert into wikipedias (video_id, title, content, created_at, updated_at) values (?, ?, ?, datetime('now', 'localtime'), datetime('now', 'localtime'))});
         $sth->execute(
             $v->{id},
             $entry ? $entry->title : '',
