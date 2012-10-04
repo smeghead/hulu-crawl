@@ -8,6 +8,7 @@ use Net::Twitter;
 use Data::Dumper;
 use FindBin;
 use Try::Tiny;
+use Getopt::Std;
 
 use Log::Log4perl;
 
@@ -27,7 +28,11 @@ my $conf = qq(
 Log::Log4perl->init(\$conf);
 my $logger = Log::Log4perl->get_logger('main');
 
-my $api_url = 'http://www2.hulu.jp/content?country=all&genre=%E3%83%89%E3%83%A9%E3%83%9E&type_group=all&ajax=true&page=';
+# my $api_url = 'http://www2.hulu.jp/content?country=all&genre=%E3%83%89%E3%83%A9%E3%83%9E&type_group=all&ajax=true&page=';
+my $api_url = 'http://www2.hulu.jp/content?country=all&genre=all&type_group=all&ajax=true&page=';
+
+my %opts = ();
+getopts('p:', \%opts);
 
 sub parse_videos {
     my ($content) = @_;
@@ -71,7 +76,7 @@ sub exists_check {
 sub twitter_post {
     my ($message) = @_;
 
-    $logger->info($message);
+    $logger->info(encode_utf8($message));
     my $nt = Net::Twitter->new(
         traits   => [qw/OAuth API::REST/],
         consumer_key => 'UjrLWT5AwoDej7uln9nFQ',
@@ -80,7 +85,11 @@ sub twitter_post {
         access_token_secret => 'eDi9SyJiuonY691OYpCDe19CiaSCDiDtNrnOV8YHUM',
     );
 
-    $nt->update($message) or die $@;
+    if (defined $opts{p} && $opts{p} eq 'true') {
+        $nt->update($message) or die $@;
+    } else {
+        $logger->debug('not post.');
+    }
 }
 
 try {
@@ -111,6 +120,12 @@ try {
                     '[' . $v->{title} . '] が更新されました。' .
                     $old->{seasons} . '(' . $old->{episodes} . ') -> ' . $v->{seasons} . '(' . $v->{episodes} . ') ' . $v->{url};
                 twitter_post($message);
+                $sth = $dbh->prepare('insert into updates (video_id, is_new, seasons, episodes, created_at, updated_at) values (?, 0, ?, ?, current_timestamp, current_timestamp)');
+                $sth->execute(
+                    $old->{id},
+                    $v->{seasons},
+                    $v->{episodes},
+                ) or die 'failed to insert. url:' . $v->{title};
             }
             $sth = $dbh->prepare('update videos set seasons = ?, episodes = ?, updated_at = current_timestamp where id = ?');
             $sth->execute(
@@ -128,6 +143,14 @@ try {
                 $v->{seasons},
                 $v->{episodes},
             ) or die 'failed to insert. url:' . $v->{title};
+            my $last_insert_id = $dbh->func('last_insert_rowid');
+            print 'new id:' . $last_insert_id, "\n";
+            $sth = $dbh->prepare('insert into updates (video_id, is_new, seasons, episodes, created_at, updated_at) values (?, 1, ?, ?, current_timestamp, current_timestamp)');
+            $sth->execute(
+                $last_insert_id,
+                $v->{seasons},
+                $v->{episodes},
+            ) or die 'failed to insert. url:' . $v->{title};
         }
     }
 
@@ -135,7 +158,10 @@ try {
 } catch {
     $logger->error_die("caught error: $_");
 };
+$logger->info('finished cleanly.');
+
 __END__
 
 create table videos (id integer primary key, url varchar, title varchar, seasons integer, episodes integer, created_at datetime, updated_at datetime);
+create table updates (id integer primary key, video_id integer not null, is_new integer not null, seasons integer, episodes integer, created_at datetime, updated_at datetime);
 
