@@ -66,7 +66,7 @@
           <div class="video-info">
             シーズン数: <: $video.seasons :> エピソード数: <: $video.episodes :>
           </div>
-          <a href="url" class="btn btn-primary" target="_blank">hulu.jpで見る</a>
+          <a href="<: $video.url :>" class="btn btn-primary" target="_blank">hulu.jpで見る</a>
           <h2>最新情報</h2>
           : if $histories.size() {
           <ul>
