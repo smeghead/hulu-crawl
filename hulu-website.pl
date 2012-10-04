@@ -91,8 +91,11 @@ sub create_video_pages {
         die $sth->errstr if $sth->err;
 
         if ($entry && $entry->{content}) {
-            $logger->debug('wikipedia: ' . $entry->{title}) if $entry;
-            $entry->{content} = wikiformat(decode_utf8($entry->{content}));
+            $logger->debug('wikipedia: ' . $entry->{title});
+            $entry->{content} = decode_utf8($entry->{content});
+            $entry->{content} =~ s/\{\{.*\}\}//msg;
+            $entry->{content} =~ s/\{\|.*\|\}//msg; # TODO: Text::MediawikiFormat がテーブルに対応してないため、現時点の対応としては、削除している。
+            $entry->{content} = wikiformat($entry->{content});
         };
 
         my $data = {
