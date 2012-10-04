@@ -9,6 +9,7 @@ use Try::Tiny;
 use Getopt::Std;
 use Text::Xslate;
 use File::Copy::Recursive qw(rcopy);
+use Text::MediawikiFormat qw(wikiformat);
 
 use Log::Log4perl;
 
@@ -65,6 +66,7 @@ sub create_video_pages {
     my $tx = Text::Xslate->new();
 
     for my $video (@$all_videos) {
+        # histories
         my $sth = $dbh->prepare(q{
             select u.* from updates as u
             where u.video_id = ?
@@ -78,9 +80,25 @@ sub create_video_pages {
         }
         die $sth->errstr if $sth->err;
 
+        # wikipedia
+        $sth = $dbh->prepare(q{
+            select * from wikipedias
+            where video_id = ?
+        });
+        $sth->execute($video->{id});
+
+        my $entry = $sth->fetchrow_hashref;
+        die $sth->errstr if $sth->err;
+
+        if ($entry && $entry->{content}) {
+            $logger->debug('wikipedia: ' . $entry->{title}) if $entry;
+            $entry->{content} = wikiformat(decode_utf8($entry->{content}));
+        };
+
         my $data = {
             video => $video,
             histories => \@histories,
+            entry => $entry,
         };
         mkdir $FindBin::Bin . '/website/video';
         my $content = $tx->render('website-template/video/video.tx.html', $data);
@@ -117,7 +135,7 @@ try {
     # all_videos
     $sth = $dbh->prepare(q{
         select v.* from videos as v
-        where v.created_at > date('now' , '-1 days' )
+        where v.created_at > date('now' , '-3 days' )
         order by v.title
     });
     $sth->execute;

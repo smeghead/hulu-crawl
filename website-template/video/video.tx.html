@@ -85,6 +85,11 @@
           : } else {
             更新情報はありません。
           : }
+
+          : if $entry.content {
+          <h2>動画情報(Wikipediaから)</h2>
+          <: $entry.content | mark_raw :>
+          : }
         </div>
         <div class="span4">
           area

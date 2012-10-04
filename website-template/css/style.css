@@ -4,4 +4,5 @@ div.info {
 div.video-info {
         font-size: 15pt;
         font-weight: bold;
+        margin: 10px 0px;
 }
