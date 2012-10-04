@@ -18,8 +18,8 @@ my $conf = qq(
 
     log4perl.appender.Logfile          = Log::Log4perl::Appender::File
     log4perl.appender.Logfile.filename = $logfile
-    log4perl.appender.Logfile.layout   = Log::Log4perl::Layout::SimpleLayout
-    log4perl.appender.Logfile.layout.ConversionPattern = [%r] %F %L %m%n
+    log4perl.appender.Logfile.layout   = Log::Log4perl::Layout::PatternLayout
+    log4perl.appender.Logfile.layout.ConversionPattern = [%d] %F %L %m%n
 
     log4perl.appender.Screen         = Log::Log4perl::Appender::Screen
     log4perl.appender.Screen.stderr  = 0
