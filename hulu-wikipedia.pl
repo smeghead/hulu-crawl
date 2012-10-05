@@ -31,7 +31,7 @@ my $logger = Log::Log4perl->get_logger('main');
 my $api_url = 'http://www2.hulu.jp/content?country=all&genre=all&type_group=all&ajax=true&page=';
 
 my %opts = ();
-getopts('n:', \%opts);
+getopts('t:q:n:', \%opts);
 
 sub get_wikipedia_contents {
     my ($dbh, $all_videos) = @_;
@@ -52,20 +52,17 @@ sub get_wikipedia_contents {
     }
 }
 
-try {
-    use DBI;
-    my $dbh = DBI->connect('dbi:SQLite:dbname=' . $FindBin::Bin . '/videos.db', "", "", {PrintError => 1, AutoCommit => 1});
-
-    my $limit = defined $opts{n} ? int($opts{n}) : 10;
+sub get_videos {
+    my ($dbh, $limit, $q) = @_;
     # all_videos
     my $sth = $dbh->prepare(q{
         select v.* from videos as v
         left join wikipedias as w on w.video_id = v.id
-        where w.id is null
+        where w.id is null and v.title like '%' || ? || '%'
         order by v.updated_at desc
         limit ?
     });
-    $sth->execute($limit);
+    $sth->execute($q, $limit);
 
     my @all_videos = ();
     while (my $row = $sth->fetchrow_hashref()){
@@ -75,8 +72,53 @@ try {
         push @all_videos, $row;
     }
     die $sth->errstr if $sth->err;
+    return \@all_videos;
+}
 
-    get_wikipedia_contents($dbh, \@all_videos);
+sub get_wikipedia {
+    my ($dbh, $title, $q) = @_;
+    # all_videos
+    my $sth = $dbh->prepare(q{
+        select w.* from wikipedias as w
+        inner join videos as v on v.id = w.video_id
+        where v.title = ?
+    });
+        $logger->debug(encode_utf8($title));
+    $sth->execute($title);
+
+    my @all_videos = ();
+    my $row = $sth->fetchrow_hashref();
+    die $sth->errstr if $sth->err;
+    return $row;
+}
+
+try {
+    use DBI;
+    my $dbh = DBI->connect('dbi:SQLite:dbname=' . $FindBin::Bin . '/videos.db', "", "", {PrintError => 1, AutoCommit => 1});
+
+    if (defined $opts{t}) {
+        my $title = decode_utf8($opts{t});
+        my $q = decode_utf8($opts{q}) or die 'requrired q option.';
+
+        my $wikipedia = get_wikipedia($dbh, $title, $q) or die 'no video or wikipedia.';
+        
+        die 'content already exist.' if $wikipedia->{content};
+
+        my $wiki = WWW::Wikipedia->new(language => 'ja');
+        my $entry = $wiki->search($q) or die 'no wikipedia entry.' . encode_utf8($q);
+
+        my $sth = $dbh->prepare(q{
+            update wikipedias set title = ?, content = ?, updated_at = datetime('now', 'localtime')
+            where id = ?
+        });
+        $sth->execute($title, $entry->fulltext_basic, $wikipedia->{id});
+    } else {
+        my $q = defined $opts{q} ? decode_utf8($opts{q}) : '';
+        my $limit = defined $opts{n} ? int($opts{n}) : 10;
+        my $all_videos = get_videos($dbh, $limit, $q);
+
+        get_wikipedia_contents($dbh, $all_videos);
+    }
 
     $dbh->disconnect;
 } catch {
