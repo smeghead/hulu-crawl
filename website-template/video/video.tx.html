@@ -44,6 +44,14 @@
   </head>
 
   <body>
+    <div id="fb-root"></div>
+    <script>(function(d, s, id) {
+      var js, fjs = d.getElementsByTagName(s)[0];
+      if (d.getElementById(id)) return;
+      js = d.createElement(s); js.id = id;
+      js.src = "//connect.facebook.net/ja_JP/all.js#xfbml=1&appId=352925834797675";
+      fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));</script>
 
     <div class="navbar navbar-inverse navbar-fixed-top">
       <div class="navbar-inner">
@@ -57,7 +65,8 @@
           <div class="nav-collapse collapse">
             <ul class="nav">
               <li class="active"><a href="/">Home</a></li>
-              <li><a href="/#about">About</a></li>
+              <li><a href="/#all">公開中動画一覧</a></li>
+              <li><a href="/search.html">動画検索</a></li>
               <li><a href="/#contact">Contact</a></li>
             </ul>
           </div><!--/.nav-collapse -->
@@ -73,6 +82,18 @@
       </ul>
 
       <h1><: $video.title :></h1>
+      <div class="social-buttons">
+        <div>
+          <a href="https://twitter.com/share" class="twitter-share-button" data-via="hulu_jp_bot" data-lang="ja" data-related="hulu_jp_bot">ツイート</a>
+          <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+        </div>
+        <div>
+          <a href="https://twitter.com/hulu_jp_bot" class="twitter-follow-button" data-show-count="false">Follow @hulu_jp_bot</a>
+          <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+        </div>
+        <div class="fb-like" data-href="http://hulu-update.info/video/<: $video.path :>.html" data-send="false" data-layout="button_count" data-width="450" data-show-faces="true"></div>
+      </div>
+      <p class="clear"></p>
 
       <div class="ad">
         <script type="text/javascript"><!--
@@ -91,7 +112,9 @@
       <div class="row-fluid">
         <div class="span8">
           <div class="video-info">
-            シーズン数: <: $video.seasons :> エピソード数: <: $video.episodes :>
+            : if $video.episodes > 1 {
+            <span class="badge badge-info" title="シーズン数">シーズン数: <: $video.seasons :></span> <span class="badge badge-success" title="エピソード数">エピソード数: <: $video.episodes :></span>
+            : }
           </div>
           <a href="<: $video.url :>" class="btn btn-primary" target="_blank">hulu.jpで見る</a>
           <h2>最新情報</h2>
@@ -117,6 +140,9 @@
           <h2>動画情報(Wikipediaから)</h2>
           <: $entry.content | mark_raw :>
           : }
+          <div>
+          <a class="back-or-top btn btn-info">戻る</a>
+          </div>
         </div>
         <div class="span4">
           <div class="ad">
@@ -156,9 +182,7 @@
 <!--     <script src="js/bootstrap-collapse.js"></script> -->
 <!--     <script src="js/bootstrap-carousel.js"></script> -->
 <!--     <script src="js/bootstrap-typeahead.js"></script> -->
-          <script type="text/javascript"
-            src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
-          </script>
+    <script src="/js/common.js"></script> 
 
   </body>
 </html>

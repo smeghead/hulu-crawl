@@ -44,6 +44,14 @@
   </head>
 
   <body>
+    <div id="fb-root"></div>
+    <script>(function(d, s, id) {
+      var js, fjs = d.getElementsByTagName(s)[0];
+      if (d.getElementById(id)) return;
+      js = d.createElement(s); js.id = id;
+      js.src = "//connect.facebook.net/ja_JP/all.js#xfbml=1&appId=352925834797675";
+      fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));</script>
 
     <div class="navbar navbar-inverse navbar-fixed-top">
       <div class="navbar-inner">
@@ -53,11 +61,12 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </a>
-          <a class="brand" href="#">hulu.jp 更新情報</a>
+          <a class="brand" href="/">hulu.jp 更新情報</a>
           <div class="nav-collapse collapse">
             <ul class="nav">
-              <li class="active"><a href="#">Home</a></li>
-              <li><a href="#about">About</a></li>
+              <li class="active"><a href="/">Home</a></li>
+              <li><a href="#all">公開中動画一覧</a></li>
+              <li><a href="/search.html">動画検索</a></li>
               <li><a href="#contact">Contact</a></li>
             </ul>
           </div><!--/.nav-collapse -->
@@ -72,7 +81,19 @@
       </ul>
 
       <h1>hulu.jp 更新情報</h1>
-      <p>hulu.jpの更新情報を纏めています。</p>
+      <div class="social-buttons">
+        <div>
+          <a href="https://twitter.com/share" class="twitter-share-button" data-via="hulu_jp_bot" data-lang="ja" data-related="hulu_jp_bot">ツイート</a>
+          <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+        </div>
+        <div>
+          <a href="https://twitter.com/hulu_jp_bot" class="twitter-follow-button" data-show-count="false">Follow @hulu_jp_bot</a>
+          <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+        </div>
+        <div class="fb-like" data-href="http://hulu-update.info/" data-send="false" data-layout="button_count" data-width="450" data-show-faces="true"></div>
+      </div>
+      <p class="clear"></p>
+      <p>hulu.jpの更新情報を纏める非公式サイトです。</p>
 
       <div class="ad">
         <script type="text/javascript"><!--
@@ -91,33 +112,43 @@
       <div class="row-fluid">
         <div class="span8">
           <h2>最新情報</h2>
-          <ul>
+          <ul class="videos">
             : for $latest_videos -> $v {
             <li>
-              <div class="title"><a href="video/<: $v.path :>.html"><: $v.title :></a></div>
               <div class="info">
-                (<: if $v.is_new {'新規追加'} else {'更新'} :>)
                 : if $v.episodes > 1 {
-                  シーズン数: <: $v.seasons :> エピソード数: <: $v.episodes :>
+                <span class="badge badge-info" title="シーズン数"><: $v.seasons :></span> <span class="badge badge-success" title="エピソード数"><: $v.episodes :></span>
                 : }
-                <: $v.updated_at :>
+                : if $v.is_new {
+                <span class="badge badge-important">新規追加</span>
+                : } else {
+                <span class="badge badge-warning">更新</span>
+                : }
               </div>
+              <div class="date"><: $v.updated_at :></div>
+              <div class="title"><a href="video/<: $v.path :>.html"><: $v.title :></a></div>
+              <p class="clear"></p>
             </li>
             : }
           </ul>
+          <div id="all" class="marker">&nbsp;</div><p class="clear"></p>
           <h2>公開中動画一覧</h2>
-          <ul>
+          <ul class="videos">
             : for $all_videos -> $v {
             <li>
-              <div class="title"><a href="video/<: $v.path :>.html"><: $v.title :></a></div>
               <div class="info">
                 : if $v.episodes > 1 {
-                  シーズン数: <: $v.seasons :> エピソード数: <: $v.episodes :>
+                <span class="badge badge-info" title="シーズン数"><: $v.seasons :></span> <span class="badge badge-success" title="エピソード数"><: $v.episodes :></span>
                 : }
               </div>
+              <div class="title"><a href="video/<: $v.path :>.html"><: $v.title :></a></div>
+              <p class="clear"></p>
             </li>
             : }
           </ul>
+          <div id="contact" class="marker">&nbsp;</div>
+          <h2>コンタクト</h2>
+          <p><a class="btn" href="mailto:smeghead7+hulu@gmail.com">メールで連絡する</a></p>
         </div>
         <div class="span4">
           <div class="ad">
@@ -157,6 +188,7 @@
 <!--     <script src="js/bootstrap-collapse.js"></script> -->
 <!--     <script src="js/bootstrap-carousel.js"></script> -->
 <!--     <script src="js/bootstrap-typeahead.js"></script> -->
+    <script src="/js/common.js"></script> 
 
   </body>
 </html>

@@ -45,7 +45,7 @@ sub create_static_files {
 sub create_index_page {
     my ($latest_videos, $all_videos) = @_;
 
-    my $tx = Text::Xslate->new();
+    my $tx = Text::Xslate->new(path => $FindBin::Bin);
 
     my $data = {
         latest_videos => $latest_videos,
@@ -60,10 +60,24 @@ sub create_index_page {
     close $out_fh;
 }
 
+sub create_search_page {
+    my $tx = Text::Xslate->new(path => $FindBin::Bin);
+
+    my $data = {
+    };
+    mkdir $FindBin::Bin . '/website';
+    my $content = $tx->render('website-template/search.tx.html', $data);
+    my $out_file = $FindBin::Bin . '/website/search.html';
+    open my $out_fh, ">", $out_file
+        or die "Cannot open $out_file for write: $!";
+    print $out_fh encode_utf8($content);
+    close $out_fh;
+}
+
 sub create_video_pages {
     my ($dbh, $all_videos) = @_;
 
-    my $tx = Text::Xslate->new();
+    my $tx = Text::Xslate->new(path => $FindBin::Bin);
 
     for my $video (@$all_videos) {
         # histories
@@ -91,8 +105,8 @@ sub create_video_pages {
         die $sth->errstr if $sth->err;
 
         if ($entry && $entry->{content}) {
-            $logger->debug('wikipedia: ' . $entry->{title});
             $entry->{content} = decode_utf8($entry->{content});
+            $entry->{content} =~ s/<\/?ref[^>]*>//msg;
             $entry->{content} =~ s/\{\{.*\}\}//msg;
             $entry->{content} =~ s/\{\|.*\|\}//msg; # TODO: Text::MediawikiFormat がテーブルに対応してないため、現時点の対応としては、削除している。
             $entry->{content} = wikiformat($entry->{content});
@@ -156,6 +170,7 @@ try {
     create_static_files;
 
     create_index_page(\@latest_videos, \@all_videos);
+    create_search_page;
 
     create_video_pages($dbh, \@all_videos);
 
