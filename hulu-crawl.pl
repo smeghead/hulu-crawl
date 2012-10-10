@@ -9,6 +9,7 @@ use Data::Dumper;
 use FindBin;
 use Try::Tiny;
 use Getopt::Std;
+use List::Compare;
 
 use Log::Log4perl;
 
@@ -33,6 +34,8 @@ my $api_url = 'http://www2.hulu.jp/content?country=all&genre=all&type_group=all&
 
 my %opts = ();
 getopts('p:', \%opts);
+
+my $checked_date = DateTime->now->epoch;
 
 sub parse_videos {
     my ($content) = @_;
@@ -92,6 +95,56 @@ sub twitter_post {
     }
 }
 
+sub last_checked_date {
+    my ($dbh) = @_;
+    my $rows = $dbh->do('');
+    my $sth = $dbh->prepare(q{select max(checked_date) as last_checked_date from published_videos});
+    $sth->execute or die 'failed to select. url';
+    return $sth->fetchrow_hashref->{last_checked_date};
+}
+
+sub check_deleted_videos {
+    my ($dbh, $last_checked_date, $checked_date) = @_;
+    my $rows = $dbh->selectall_arrayref(q{
+        select v.id
+        from published_videos as p
+        inner join videos as v on v.id = p.video_id
+        where p.checked_date = ?
+    }, {Slice => {}}, $last_checked_date);
+    my @last_videos = ();
+    for my $r (@$rows) {
+        push @last_videos, $r->{id};
+    }
+    $rows = $dbh->selectall_arrayref(q{
+        select v.id
+        from published_videos as p
+        inner join videos as v on v.id = p.video_id
+        where p.checked_date = ?
+    }, {Slice => {}}, $checked_date);
+    my @new_videos = ();
+    for my $r (@$rows) {
+        push @new_videos, $r->{id};
+    }
+    print 'last_videos: ', scalar @last_videos, "\n";
+    print 'new_videos: ', scalar @new_videos, "\n";
+
+    my $lc = List::Compare->new(\@last_videos, \@new_videos);
+    for my $id ($lc->get_Lonly) {
+        my $row = $dbh->selectrow_hashref(q{
+            select * from videos where id = ?
+        }, {Slice => {}}, $id);
+        print "deleted $id: ", $row->{title}, "\n";
+        my $sth = $dbh->prepare(q{insert into updates (video_id, is_new, seasons, episodes, created_at, updated_at) values (?, 0, ?, ?, datetime('now', 'localtime'), datetime('now', 'localtime'))});
+        $sth->execute(
+            $id,
+            0,
+            0,
+        ) or die 'failed to insert. id:' . $id;
+        my $message = '[' . decode_utf8($row->{title}) . '] が削除されました。' . $row->{url};
+        twitter_post($message);
+    }
+}
+
 try {
     my @videos = ();
     for my $p (1 .. 100) {
@@ -108,10 +161,15 @@ try {
     use DBI;
     my $dbh = DBI->connect('dbi:SQLite:dbname=' . $FindBin::Bin . '/videos.db', "", "", {PrintError => 1, AutoCommit => 1});
 
+    my $last_checked_date = last_checked_date($dbh);
+    print 'last_checked_date:', $last_checked_date, "\n";
+    print 'checked_date:', $checked_date, "\n";
+
     for my $v (@videos) {
         $logger->debug($v->{url});
         my $select = "select * from videos where url = ?";
         my $sth = $dbh->prepare($select);
+        my $video_id;
         $sth->execute($v->{url});
         if (my $old = $sth->fetchrow_hashref) {
             if ($old->{seasons} != $v->{seasons} or $old->{episodes} != $v->{episodes}) {
@@ -133,6 +191,7 @@ try {
                 $v->{episodes},
                 $old->{id},
             ) or die 'failed to update. url:' . $v->{title};
+            $video_id = $old->{id};
         } else {
             my $message = '[' . $v->{title} . '] が追加されました。' . $v->{url};
             twitter_post($message);
@@ -151,8 +210,16 @@ try {
                 $v->{seasons},
                 $v->{episodes},
             ) or die 'failed to insert. url:' . $v->{title};
+            $video_id = $last_insert_id;
         }
+        $sth = $dbh->prepare(q{insert into published_videos (video_id, checked_date, created_at, updated_at) values (?, ?, datetime('now', 'localtime'), datetime('now', 'localtime'))});
+        $sth->execute(
+            $video_id,
+            $checked_date,
+        ) or die 'failed to insert. id:' . $video_id;
     }
+    # check deleted videos
+    check_deleted_videos($dbh, $last_checked_date, $checked_date);
 
     $dbh->disconnect;
 } catch {
@@ -164,4 +231,5 @@ __END__
 
 create table videos (id integer primary key, url varchar, title varchar, seasons integer, episodes integer, created_at datetime, updated_at datetime);
 create table updates (id integer primary key, video_id integer not null, is_new integer not null, seasons integer, episodes integer, created_at datetime, updated_at datetime);
+create table published_videos (id integer primary key, checked_date varchar, video_id integer, created_at datetime, updated_at datetime);
 

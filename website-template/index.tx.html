@@ -122,7 +122,11 @@
                 : if $v.is_new {
                 <span class="badge badge-important">新規追加</span>
                 : } else {
+                  : if $v.episodes == 0 {
+                <span class="badge badge-error">削除</span>
+                  : } else {
                 <span class="badge badge-warning">更新</span>
+                  : }
                 : }
               </div>
               <div class="date"><: $v.updated_at :></div>
