@@ -103,6 +103,13 @@ sub last_checked_date {
     return $sth->fetchrow_hashref->{last_checked_date};
 }
 
+sub deleted_video {
+    my ($row) = @_;
+
+    my $response = LWP::UserAgent->new->request(HTTP::Request->new(GET => $row->{url}));
+    return $response->status_line =~ m{404};
+}
+
 sub check_deleted_videos {
     my ($dbh, $last_checked_date, $checked_date) = @_;
     my $rows = $dbh->selectall_arrayref(q{
@@ -134,6 +141,8 @@ sub check_deleted_videos {
             select * from videos where id = ?
         }, {Slice => {}}, $id);
         print "deleted $id: ", $row->{title}, "\n";
+        next unless deleted_video($row);
+
         my $sth = $dbh->prepare(q{insert into updates (video_id, is_new, seasons, episodes, created_at, updated_at) values (?, 0, ?, ?, datetime('now', 'localtime'), datetime('now', 'localtime'))});
         $sth->execute(
             $id,
@@ -142,7 +151,7 @@ sub check_deleted_videos {
         ) or die 'failed to insert. id:' . $id;
         my $message = '[' . decode_utf8($row->{title}) . '] が削除されました。' . $row->{url};
         $logger->info(encode_utf8($message));
-#         twitter_post($message);
+        twitter_post($message);
     }
 }
 
