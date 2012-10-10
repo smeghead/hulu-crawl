@@ -88,7 +88,8 @@ sub table_format {
         } elsif ($line =~ m(^\s*[\|!][^\+\-}])) {
             #col
             $line =~ s(^\s*[\|!]\s*)();
-            my @cols = split /\s*\|\|\s*/, $line;
+            my $th = $line =~ m{!};
+            my @cols = split /\s*[\|!]{2}\s*/, $line;
             for my $col (@cols) {
                 my ($attr, $val) = ('', $col);
                 my $pos = index($col, '|');
@@ -97,7 +98,11 @@ sub table_format {
                     $val = substr($col, $pos + 1);
                 }
 
-                push @$row, {td => {attr => $attr, value => $val}};
+                if ($th) {
+                    push @$row, {th => {attr => $attr, value => $val}};
+                } else {
+                    push @$row, {td => {attr => $attr, value => $val}};
+                }
             }
         } elsif ($line =~ m(^\s*\|\-)) {
             #end row
