@@ -90,7 +90,14 @@ sub table_format {
             $line =~ s(^\s*[\|!]\s*)();
             my @cols = split /\s*\|\|\s*/, $line;
             for my $col (@cols) {
-                push @$row, {td => $col};
+                my ($attr, $val) = ('', $col);
+                my $pos = index($col, '|');
+                if ($pos > -1) {
+                    $attr = substr($col, 0, $pos);
+                    $val = substr($col, $pos + 1);
+                }
+
+                push @$row, {td => {attr => $attr, value => $val}};
             }
         } elsif ($line =~ m(^\s*\|\-)) {
             #end row
@@ -99,13 +106,16 @@ sub table_format {
         } elsif ($line =~ m(\|})) {
             #end table
             push @{$table->{rows}}, $row;
+            $row = [];
         }
     }
     my $table_str = "<table $table->{attr}>\n";
     for my $row (@{$table->{rows}}) {
         $table_str .= "  <tr>\n";
         for my $col (@$row) {
-            $table_str .= "    <td>$col->{td}</td>\n";
+            my @keys = keys %$col;
+            my $key = $keys[0];
+            $table_str .= "    <$key $col->{$key}->{attr}>$col->{$key}->{value}</$key>\n";
         }
         $table_str .= "  </tr>\n";
     }
@@ -146,8 +156,8 @@ sub create_video_pages {
         if ($entry && $entry->{content}) {
             $entry->{content} = decode_utf8($entry->{content});
             $entry->{content} =~ s/<\/?ref[^>]*>//msg;
-            $entry->{content} =~ s/\{\{.*\}\}//msg;
-            $entry->{content} =~ s/(\{\|.*\|\})/table_format($1)/emsg; # TODO: Text::MediawikiFormat がテーブルに対応してないため、現時点の対応としては、削除している。
+            $entry->{content} =~ s/\{\{.*?\}\}//msg;
+            $entry->{content} =~ s/(\{\|.*?\|\})/table_format($1)/emsg; # TODO: Text::MediawikiFormat がテーブルに対応してないため、現時点の対応としては、削除している。
             $entry->{content} = wikiformat($entry->{content});
         };
 
