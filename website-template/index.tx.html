@@ -114,7 +114,6 @@
           <h2>最新情報</h2>
           <ul class="videos">
             : for $latest_videos -> $v {
-              : next if $v.episodes == 0
             <li>
               <div class="info">
                 : if $v.episodes > 1 {

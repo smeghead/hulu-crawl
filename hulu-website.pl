@@ -74,6 +74,45 @@ sub create_search_page {
     close $out_fh;
 }
 
+sub table_format {
+    my ($text) = @_;
+    my $table = {attr => '', rows => []};
+    my @lines = split "\n", $text;
+
+    my $row = [];
+    for my $line (@lines) {
+       if ($line =~ m(^{\|)) {
+            #start
+            $line =~ s(^{\|)();
+            $table->{attr} = $line;
+        } elsif ($line =~ m(^\s*[\|!][^\+\-}])) {
+            #col
+            $line =~ s(^\s*[\|!]\s*)();
+            my @cols = split /\s*\|\|\s*/, $line;
+            for my $col (@cols) {
+                push @$row, {td => $col};
+            }
+        } elsif ($line =~ m(^\s*\|\-)) {
+            #end row
+            push @{$table->{rows}}, $row;
+            $row = [];
+        } elsif ($line =~ m(\|})) {
+            #end table
+            push @{$table->{rows}}, $row;
+        }
+    }
+    my $table_str = "<table $table->{attr}>\n";
+    for my $row (@{$table->{rows}}) {
+        $table_str .= "  <tr>\n";
+        for my $col (@$row) {
+            $table_str .= "    <td>$col->{td}</td>\n";
+        }
+        $table_str .= "  </tr>\n";
+    }
+    $table_str .= "</table>\n";
+    return $table_str;
+}
+
 sub create_video_pages {
     my ($dbh, $all_videos) = @_;
 
@@ -108,7 +147,7 @@ sub create_video_pages {
             $entry->{content} = decode_utf8($entry->{content});
             $entry->{content} =~ s/<\/?ref[^>]*>//msg;
             $entry->{content} =~ s/\{\{.*\}\}//msg;
-            $entry->{content} =~ s/\{\|.*\|\}//msg; # TODO: Text::MediawikiFormat がテーブルに対応してないため、現時点の対応としては、削除している。
+            $entry->{content} =~ s/(\{\|.*\|\})/table_format($1)/emsg; # TODO: Text::MediawikiFormat がテーブルに対応してないため、現時点の対応としては、削除している。
             $entry->{content} = wikiformat($entry->{content});
         };
 

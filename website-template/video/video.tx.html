@@ -125,7 +125,7 @@
               <div class="info">
                 <: if $v.is_new {'新規追加'} else {'更新'} :>
                 : if $v.episodes > 1 {
-                  シーズン数: <: $v.seasons :> エピソード数: <: $v.episodes :>
+                <span class="badge badge-info">シーズン数: <: $v.seasons :></span> <span class="badge badge-success">エピソード数: <: $v.episodes :></span>
                 : }
                 <: $v.updated_at :>
               </div>
@@ -138,7 +138,9 @@
 
           : if $entry.content {
           <h2>動画情報(Wikipediaから)</h2>
-          <: $entry.content | mark_raw :>
+          <div class="wikipedia">
+            <: $entry.content | mark_raw :>
+          </div>
           : }
           <div>
           <a class="back-or-top btn btn-info">戻る</a>
