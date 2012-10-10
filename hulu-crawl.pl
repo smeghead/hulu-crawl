@@ -149,6 +149,12 @@ sub check_deleted_videos {
             0,
             0,
         ) or die 'failed to insert. id:' . $id;
+        $sth = $dbh->prepare(q{update videos set seasons = ?, episodes = ?, updated_at = datetime('now', 'localtime') where id = ?});
+        $sth->execute(
+            0,
+            0,
+            $id,
+        ) or die 'failed to update. id:' . $id;
         my $message = '[' . decode_utf8($row->{title}) . '] が削除されました。' . $row->{url};
         $logger->info(encode_utf8($message));
         twitter_post($message);
