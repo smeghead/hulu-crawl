@@ -33,13 +33,30 @@ my $api_url = 'http://www2.hulu.jp/content?country=all&genre=all&type_group=all&
 my %opts = ();
 getopts('t:q:n:', \%opts);
 
+sub convert_title {
+    my ($title) = @_;
+
+    $title = decode_utf8($title);
+    $title =~ tr{１２３４５６７８９０／：～}{1234567890/:〜};
+    $title =~ s{™}{}g;
+    return $title;
+}
+
+#print convert_title('CSI：恐竜科学捜査班'), "\n";
+#print convert_title('アラド戦記 ～スラップアップパーティー～'), "\n";
+#print convert_title('９デイズ'), "\n";
+#print convert_title('スパイダーマン™'), "\n";
+#print convert_title('HEROES／ヒーローズ'), "\n";
+#die;
+
 sub get_wikipedia_contents {
     my ($dbh, $all_videos) = @_;
 
     my $wiki = WWW::Wikipedia->new(language => 'ja');
     for my $v (@$all_videos) {
-        $logger->debug($v->{title});
-        my $entry = $wiki->search($v->{title});
+        my $title = convert_title($v->{title});
+        $logger->debug('converted:' . encode_utf8($title));
+        my $entry = $wiki->search($title);
 
         $logger->debug($entry->title) if $entry;
 
@@ -83,7 +100,7 @@ sub get_wikipedia {
         inner join videos as v on v.id = w.video_id
         where v.title = ?
     });
-        $logger->debug(encode_utf8($title));
+    $logger->debug(encode_utf8($title));
     $sth->execute($title);
 
     my @all_videos = ();
@@ -106,6 +123,7 @@ try {
 
         my $wiki = WWW::Wikipedia->new(language => 'ja');
         my $entry = $wiki->search($q) or die 'no wikipedia entry.' . encode_utf8($q);
+        print 'got:', $title, "\n";
 
         my $sth = $dbh->prepare(q{
             update wikipedias set title = ?, content = ?, updated_at = datetime('now', 'localtime')
