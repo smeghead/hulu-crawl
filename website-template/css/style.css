@@ -31,20 +31,25 @@ div.gsc-control-cse {
 ul.videos {
 	margin-left: 0px;
 }
+ul.videos > li:nth-child(odd) {
+	background-color: #f9f9ff;
+}
 ul.videos > li {
-	background-color: #eee;
+	background-color: #ffffff;
 	list-style-type: none;
+	padding: 0px;
+	margin: 0px;
 	padding: 10px;
-	margin: 5px 0px;
+	border-top: 1px solid #ccc;
 }
 ul.videos .date {
 	font-size: 8pt;
 }
 ul.videos .title {
-	font-size: 13pt;
+	font-size: 15pt;
+	font-weight: bold;
 }
 ul.videos .info {
-	margin: 3px;
 	float: right;
 }
 div.wikipedia table {
