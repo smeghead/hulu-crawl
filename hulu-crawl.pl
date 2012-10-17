@@ -79,6 +79,7 @@ sub exists_check {
 sub twitter_post {
     my ($message) = @_;
 
+    $message .= ' http://hulu-update.info/';
     $logger->info(encode_utf8($message));
     my $nt = Net::Twitter->new(
         traits   => [qw/OAuth API::REST/],
@@ -181,8 +182,11 @@ try {
     print 'last_checked_date:', $last_checked_date, "\n";
     print 'checked_date:', $checked_date, "\n";
 
+    my $count = scalar @videos;
+    my $i = 1;
     for my $v (@videos) {
-        $logger->debug($v->{url});
+        $logger->debug("($i/$count) " . $v->{url});
+        $i++;
         my $select = "select * from videos where url = ?";
         my $sth = $dbh->prepare($select);
         my $video_id;
@@ -246,6 +250,8 @@ $logger->info('finished cleanly.');
 __END__
 
 create table videos (id integer primary key, url varchar, title varchar, seasons integer, episodes integer, created_at datetime, updated_at datetime);
+create index videos_url on videos(url);
 create table updates (id integer primary key, video_id integer not null, is_new integer not null, seasons integer, episodes integer, created_at datetime, updated_at datetime);
 create table published_videos (id integer primary key, checked_date varchar, video_id integer, created_at datetime, updated_at datetime);
+create index published_videos_checked_date on published_videos(checked_date);
 
