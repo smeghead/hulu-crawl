@@ -206,7 +206,7 @@ try {
     # all_videos
     $sth = $dbh->prepare(q{
         select v.* from videos as v
-        where v.updated_at > date('now' , '-3 days' )
+        where v.updated_at > date('now' , '-1 days' )
         order by v.title
     });
     $sth->execute;
