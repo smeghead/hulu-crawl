@@ -214,7 +214,11 @@ try {
             ) or die 'failed to update. url:' . $v->{title};
             $video_id = $old->{id};
         } else {
-            my $message = '[' . $v->{title} . '] が追加されました。' . $v->{url};
+            my $seasons_info = '';
+            if ($v->{episodes} > 1) {
+                $seasons_info = "$v->{seasons} ($v->{episodes})";
+            }
+            my $message = '[' . $v->{title} . '] が追加されました。' . $seasons_info . ' ' . $v->{url};
             twitter_post($message);
             $sth = $dbh->prepare(q{insert into videos (url, title, seasons, episodes, created_at, updated_at) values (?, ?, ?, ?, datetime('now', 'localtime'), datetime('now', 'localtime'))});
             $sth->execute(
