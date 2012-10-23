@@ -10,8 +10,10 @@ use FindBin;
 use Try::Tiny;
 use Getopt::Std;
 use List::Compare;
+use Config::Simple;
 
 use Log::Log4perl;
+my $config = new Config::Simple('twitter.conf');
 
 my $logfile = $FindBin::Bin . '/hulu-crawl.log';
 my $conf = qq(
@@ -29,7 +31,6 @@ my $conf = qq(
 Log::Log4perl->init(\$conf);
 my $logger = Log::Log4perl->get_logger('main');
 
-# my $api_url = 'http://www2.hulu.jp/content?country=all&genre=%E3%83%89%E3%83%A9%E3%83%9E&type_group=all&ajax=true&page=';
 my $api_url = 'http://www2.hulu.jp/content?country=all&genre=all&type_group=all&ajax=true&page=';
 
 my %opts = ();
@@ -83,10 +84,10 @@ sub twitter_post {
     $logger->info(encode_utf8($message));
     my $nt = Net::Twitter->new(
         traits   => [qw/OAuth API::REST/],
-        consumer_key => 'UjrLWT5AwoDej7uln9nFQ',
-        consumer_secret => 'IVT4epWYZSA0qzJRu1tJXabEDfbV3ZjLtfdm4GwTE4',
-        access_token => '842246437-WquJX5oxiMNQX9bwqwdYbxV8ckoGhYHikfP8Mqht',
-        access_token_secret => 'eDi9SyJiuonY691OYpCDe19CiaSCDiDtNrnOV8YHUM',
+        consumer_key => $config->param('consumer_key'),
+        consumer_secret => $config->param('consumer_secret'),
+        access_token => $config->param('access_token'),
+        access_token_secret => $config->param('access_token_secret'),
     );
 
     if (defined $opts{p} && $opts{p} eq 'true') {
