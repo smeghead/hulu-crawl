@@ -116,7 +116,9 @@
             <span class="badge badge-info" title="シーズン数">シーズン数: <: $video.seasons :></span> <span class="badge badge-success" title="エピソード数">エピソード数: <: $video.episodes :></span>
             : }
           </div>
-          <a href="<: $video.url :>" class="btn btn-primary" target="_blank">hulu.jpで見る</a>
+          <div class="goto-hulu">
+            <a href="<: $video.url :>" class="btn btn-primary btn-large" target="_blank">今からhuluで見る</a>
+          </div>
           <h2>最新情報</h2>
           : if $histories.size() {
           <ul>
