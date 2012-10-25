@@ -13,7 +13,7 @@ use List::Compare;
 use Config::Simple;
 
 use Log::Log4perl;
-my $config = new Config::Simple('twitter.conf');
+my $config = new Config::Simple($FindBin::Bin . '/twitter.conf');
 
 my $logfile = $FindBin::Bin . '/hulu-crawl.log';
 my $conf = qq(
