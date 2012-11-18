@@ -56,7 +56,7 @@ sub create_rss {
     $rss->description($description);
     $rss->pubDate(DateTime::Format::W3CDTF->format_datetime(DateTime->now(time_zone => 'local')));
     $rss->image(
-        "$base_url/hulu.png",
+        "${base_url}hulu.png",
         $appname,
         $base_url,
         $description,
