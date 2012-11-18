@@ -10,7 +10,8 @@ use Getopt::Std;
 use Text::Xslate;
 use File::Copy::Recursive qw(rcopy);
 use Text::MediawikiFormat qw(wikiformat);
-
+use XML::FeedPP;
+use DateTime::Format::W3CDTF;
 use Log::Log4perl;
 
 my $logfile = $FindBin::Bin . '/hulu-website.log';
@@ -40,6 +41,37 @@ sub create_static_files {
     for my $d (@dirs) {
         rcopy $FindBin::Bin . "/website-template/$d", "$out_dir/$d";
     }
+}
+
+sub create_rss {
+    my ($latest_videos) = @_;
+
+    my $rss = XML::FeedPP::RSS->new;
+    my $appname = 'hulu.jp 更新情報';
+    my $base_url = 'http://hulu-update.info/';
+    my $description = 'hulu.jpの更新情報を纏める非公式サイトです。 huluの動画に変更があるかどうかを1時間おきにチェックして、変更があれば更新されます。 最新情報に掲載される情報は、twitter の @hulu_jp_bot と同じ情報です。';
+    $rss->language('ja-JP');
+    $rss->title($appname);
+    $rss->link($base_url);
+    $rss->description($description);
+    $rss->pubDate(DateTime::Format::W3CDTF->format_datetime(DateTime->now(time_zone => 'local')));
+    $rss->image(
+        "$base_url/img/unkode.png",
+        $appname,
+        $base_url,
+        $description,
+    );
+
+    for my $v (@$latest_videos) {
+        my $title = decode_utf8($v->{title});
+        $rss->add_item(
+          title       => $title,
+          link        => "http://hulu-update.info/video/$v->{path}.html",
+          description => "$title が" . ($v->{episodes} == 0 ? '削除' : $v->{is_new} ? '追加' : '更新') . 'されました。',
+        );
+    }
+    mkdir $FindBin::Bin . '/website';
+    $rss->to_file($FindBin::Bin . '/website/rss.xml');
 }
 
 sub create_index_page {
@@ -223,6 +255,7 @@ try {
 
     create_static_files;
 
+    create_rss(\@latest_videos);
     create_index_page(\@latest_videos, \@all_videos);
     create_search_page;
 
