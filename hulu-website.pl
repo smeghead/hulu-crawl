@@ -37,7 +37,7 @@ sub create_static_files {
     my $out_dir = $FindBin::Bin . '/website';
     mkdir $out_dir;
 
-    my @dirs = qw(css js img);
+    my @dirs = qw(css js img favicon.ico);
     for my $d (@dirs) {
         rcopy $FindBin::Bin . "/website-template/$d", "$out_dir/$d";
     }
