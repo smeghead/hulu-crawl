@@ -221,8 +221,9 @@ try {
     my $sth = $dbh->prepare(q{
         select u.*, v.title, v.url from updates as u
         inner join videos as v on v.id = u.video_id
+        where u.created_at > date('now', '-3 days', 'localtime')
         order by u.created_at desc
-        limit 20
+        limit 100
     });
     $sth->execute;
 
