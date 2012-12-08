@@ -47,7 +47,7 @@ sub parse_videos {
         my ($url, $title) = $_ =~ m{
             show-title-container .*
             href="([^"]+)" .*
-            class="bold-link">([^<]+)</a> .*
+            class="bold-link[^"]*">([^<]+)</a> .*
         }mxs;
         my ($seasons, $episodes) = $_ =~ m{
             digit'>(\d+)< .*
