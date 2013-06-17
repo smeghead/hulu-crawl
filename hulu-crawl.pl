@@ -83,7 +83,7 @@ sub twitter_post {
     $message .= ' http://hulu-update.info/';
     $logger->info(encode_utf8($message));
     my $nt = Net::Twitter->new(
-        traits   => [qw/OAuth API::REST/],
+        traits   => [qw/OAuth API::RESTv1_1/],
         consumer_key => $config->param('consumer_key'),
         consumer_secret => $config->param('consumer_secret'),
         access_token => $config->param('access_token'),
