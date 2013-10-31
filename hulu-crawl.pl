@@ -197,6 +197,7 @@ try {
                 $logger->info('changed.');
                 my $message = 
                     '[' . $v->{title} . '] が更新されました。' .
+                    ($old->{episodes} < $v->{episodes} ? '(増加)' : '(減少)') .
                     $old->{seasons} . '(' . $old->{episodes} . ') -> ' . $v->{seasons} . '(' . $v->{episodes} . ') ' . $v->{url};
                 twitter_post($message);
                 $sth = $dbh->prepare(q{insert into updates (video_id, is_new, seasons, episodes, created_at, updated_at) values (?, 0, ?, ?, datetime('now', 'localtime'), datetime('now', 'localtime'))});
