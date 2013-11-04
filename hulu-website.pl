@@ -75,13 +75,14 @@ sub create_rss {
 }
 
 sub create_index_page {
-    my ($latest_videos, $all_videos) = @_;
+    my ($latest_videos, $all_videos, $counts) = @_;
 
     my $tx = Text::Xslate->new(path => $FindBin::Bin);
 
     my $data = {
         latest_videos => $latest_videos,
         all_videos => $all_videos,
+        counts => $counts,
     };
     mkdir $FindBin::Bin . '/website';
     my $content = $tx->render('website-template/index.tx.html', $data);
@@ -245,19 +246,39 @@ try {
     $sth->execute;
 
     my @all_videos = ();
+    my $last_index = '';
     while (my $row = $sth->fetchrow_hashref()){
         my $path = $row->{url};
         $path =~ s{.*\/(.*)$}{$1};
         $row->{path} = $path;
+        my $index = substr $row->{title}, 0, 1;
+        if ($index ne $last_index) {
+            $row->{index} = $index;
+            $last_index = $index;
+        }
         push @all_videos, $row;
     }
     die $sth->errstr if $sth->err;
     print scalar @all_videos;
 
+    # video_count
+    $sth = $dbh->prepare(q{
+        select * from video_counts
+        order by date
+    });
+    $sth->execute;
+    my @counts = ();
+    while (my $row = $sth->fetchrow_hashref()) {
+        push @counts, $row;
+    }
+
+    die $sth->errstr if $sth->err;
+    print Dumper(\@counts);
+
     create_static_files;
 
     create_rss(\@latest_videos);
-    create_index_page(\@latest_videos, \@all_videos);
+    create_index_page(\@latest_videos, \@all_videos, \@counts);
     create_search_page;
 
     create_video_pages($dbh, \@all_videos);

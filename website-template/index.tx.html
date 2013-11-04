@@ -104,6 +104,64 @@
         最新情報に掲載される情報は、twitter の <a href="https://twitter.com/hulu_jp_bot" target="_blank">@hulu_jp_bot</a> と同じ情報です。
       </p>
 
+      <script src="js/Chart.js"></script>
+      <div id="chart">
+        <canvas id="myChart" width="900" height="200"></canvas>
+      </div>
+      <script>
+        var data = {
+          labels : [
+: for $counts -> $c {
+  '<: $c.date :>',
+: }
+                     ],
+          datasets : [
+            {
+              fillColor : "rgba(0,180,255,0.1)",
+              strokeColor : "#66ccff",
+              pointColor : "#66ccff",
+              pointStrokeColor : "#fff",
+              data : [
+: for $counts -> $c {
+  <: $c.count :>,
+: }
+              ]
+            }
+          ]
+        }
+        var ctx = document.getElementById("myChart").getContext("2d");
+        new Chart(ctx).Line(data,{
+          bezierCurve : false,
+//          scaleOverlay : true,
+//          scaleOverride : true,
+//          scaleSteps : 5,
+//          scaleStepWidth : 50,
+//          scaleStartValue : null,
+//          scaleLineColor : "#ccc",
+//          scaleLineWidth : 1,
+//          scaleShowLabels : true,
+//          scaleLabel : "",
+//          scaleFontFamily : "'Arial'",
+//          scaleFontSize : 11,
+//          scaleFontStyle : "normal",
+//          scaleFontColor : "#ccc",  
+//          scaleShowGridLines : false,
+//          scaleGridLineColor : "#ccc",
+//          scaleGridLineWidth : 1, 
+//          bezierCurve : false,
+//          pointDot : true,
+//          pointDotRadius : 6,
+//          pointDotStrokeWidth : 0,
+//          datasetStroke : true,
+//          datasetStrokeWidth : 3,
+//          datasetFill : true,
+//          animation : true,
+//          animationSteps : 60,
+//          animationEasing : "easeOutQuart",
+//          onAnimationComplete : null  
+        });
+      </script>
+
       <div class="ad">
         <script type="text/javascript"><!--
           google_ad_client = "ca-pub-6994803411870749";
@@ -147,14 +205,14 @@
           <h2>公開中動画一覧(合計 <: $all_videos.size() :> タイトル)</h2>
           <ul class="videos">
             : for $all_videos -> $v {
-            <li>
-              <div class="info">
-                : if $v.episodes > 1 {
-                <span class="badge badge-info" title="シーズン数"><: $v.seasons :></span> <span class="badge badge-success" title="エピソード数"><: $v.episodes :></span>
-                : }
-              </div>
-              <div class="title"><a href="video/<: $v.path :>.html"><: $v.title :></a></div>
-            </li>
+              <li <: if $v.index {'id="' ~ $v.index ~ '"'} :>>
+                <div class="info">
+                  : if $v.episodes > 1 {
+                  <span class="badge badge-info" title="シーズン数"><: $v.seasons :></span> <span class="badge badge-success" title="エピソード数"><: $v.episodes :></span>
+                  : }
+                </div>
+                <div class="title"><a href="video/<: $v.path :>.html"><: $v.title :></a></div>
+              </li>
             : }
           </ul>
           <div id="links" class="marker">&nbsp;</div><p class="clear"></p>

@@ -163,6 +163,33 @@ sub check_deleted_videos {
     }
 }
 
+sub record_video_count {
+    my ($dbh) = @_;
+
+    my $sth = $dbh->prepare(q{
+        select count(*) as count from videos as v
+        where v.updated_at > date('now' , '-1 days' )
+        order by v.title
+    });
+    $sth->execute;
+    my $row = $sth->fetchrow_hashref() or die('failed to fetch count.');
+    my $count = $row->{count};
+    print 'video count: ', $count, "\n";
+
+    my $today = DateTime->today()->strftime('%Y-%m-%d');
+    print 'today: ', $today, "\n";
+
+    $sth = $dbh->prepare(q{delete from video_counts where date = ?});
+    $sth->execute($today);
+
+    $sth = $dbh->prepare(q{insert into video_counts (date, count) values (?, ?)});
+    $sth->execute(
+        $today,
+        $count,
+    ) or die 'failed to insert.';
+    print 'recorded count.ok', "\n";
+}
+
 try {
     my @videos = ();
     for my $p (1 .. 100) {
@@ -246,6 +273,8 @@ try {
     # check deleted videos
     check_deleted_videos($dbh, $last_checked_date, $checked_date);
 
+    record_video_count($dbh);
+
     $dbh->disconnect;
 } catch {
     $logger->error_die("caught error: $_");
@@ -259,4 +288,5 @@ create index videos_url on videos(url);
 create table updates (id integer primary key, video_id integer not null, is_new integer not null, seasons integer, episodes integer, created_at datetime, updated_at datetime);
 create table published_videos (id integer primary key, checked_date varchar, video_id integer, created_at datetime, updated_at datetime);
 create index published_videos_checked_date on published_videos(checked_date);
+create table video_counts (id integer primary key, date varchar not null, count integer);
 
