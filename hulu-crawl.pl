@@ -83,7 +83,7 @@ sub twitter_post {
     $message .= ' http://hulu-update.info/';
     $logger->info(encode_utf8($message));
     my $nt = Net::Twitter->new(
-        traits   => [qw/OAuth API::REST/],
+        traits   => [qw/OAuth API::RESTv1_1/],
         consumer_key => $config->param('consumer_key'),
         consumer_secret => $config->param('consumer_secret'),
         access_token => $config->param('access_token'),
@@ -142,8 +142,10 @@ sub check_deleted_videos {
         my $row = $dbh->selectrow_hashref(q{
             select * from videos where id = ?
         }, {Slice => {}}, $id);
-        print "deleted $id: ", $row->{title}, "\n";
+        print "it may deleted? $id: ", $row->{title}, " checking...\n";
         next unless deleted_video($row);
+
+        print "it has deleted $id: ", $row->{title}, "\n";
 
         my $sth = $dbh->prepare(q{insert into updates (video_id, is_new, seasons, episodes, created_at, updated_at) values (?, 0, ?, ?, datetime('now', 'localtime'), datetime('now', 'localtime'))});
         $sth->execute(
@@ -222,9 +224,10 @@ try {
         if (my $old = $sth->fetchrow_hashref) {
             if ($old->{seasons} != $v->{seasons} or $old->{episodes} != $v->{episodes}) {
                 $logger->info('changed.');
+                my $increace = $old->{episodes} < $v->{episodes} ? '↑↑↑' : '↓↓↓';
                 my $message = 
                     '[' . $v->{title} . '] が更新されました。' .
-                    $old->{seasons} . '(' . $old->{episodes} . ') -> ' . $v->{seasons} . '(' . $v->{episodes} . ') ' . $v->{url};
+                    $old->{seasons} . '(' . $old->{episodes} . ') -> ' . $v->{seasons} . '(' . $v->{episodes} . ') ' . $increace . ' ' . $v->{url};
                 twitter_post($message);
                 $sth = $dbh->prepare(q{insert into updates (video_id, is_new, seasons, episodes, created_at, updated_at) values (?, 0, ?, ?, datetime('now', 'localtime'), datetime('now', 'localtime'))});
                 $sth->execute(
