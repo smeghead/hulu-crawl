@@ -112,7 +112,11 @@
         var data = {
           labels : [
 : for $counts -> $c {
+  : if substr($c.date, 8) == '01' {
   '<: $c.date :>',
+  : } else {
+  '', 
+  : }
 : }
                      ],
           datasets : [
@@ -149,7 +153,7 @@
 //          scaleGridLineColor : "#ccc",
 //          scaleGridLineWidth : 1, 
 //          bezierCurve : false,
-//          pointDot : true,
+          pointDot : false,
 //          pointDotRadius : 6,
 //          pointDotStrokeWidth : 0,
 //          datasetStroke : true,

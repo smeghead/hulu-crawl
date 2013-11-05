@@ -77,7 +77,10 @@ sub create_rss {
 sub create_index_page {
     my ($latest_videos, $all_videos, $counts) = @_;
 
-    my $tx = Text::Xslate->new(path => $FindBin::Bin);
+    my $tx = Text::Xslate->new(
+        path => $FindBin::Bin,
+        module => ['Text::Xslate::Bridge::Star'],
+    );
 
     my $data = {
         latest_videos => $latest_videos,
