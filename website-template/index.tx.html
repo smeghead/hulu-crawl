@@ -78,26 +78,27 @@
 
     <div class="container">
 
-      <ul class="breadcrumb">
-        <li class="active"><a href="/">Home</a></li>
-      </ul>
-
-      <h1>hulu.jp 更新情報</h1>
-      <div class="social-buttons">
-        <div>
-          <a href="https://twitter.com/share" class="twitter-share-button" data-via="hulu_jp_bot" data-lang="ja" data-related="hulu_jp_bot">ツイート</a>
-          <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+      <div class="breadcrumb-block">
+        <div class="social-buttons">
+          <div>
+            <a href="https://twitter.com/share" class="twitter-share-button" data-via="hulu_jp_bot" data-lang="ja" data-related="hulu_jp_bot">ツイート</a>
+            <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+          </div>
+          <div>
+            <a href="https://twitter.com/hulu_jp_bot" class="twitter-follow-button" data-show-count="false">Follow @hulu_jp_bot</a>
+            <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+          </div>
+          <div class="fb-like" data-href="http://hulu-update.info/" data-send="false" data-layout="button_count" data-width="450" data-show-faces="true"></div>
+          <a href="/rss.xml" target="_blank">
+            <img src="/img/rss.png" />
+          </a>
         </div>
-        <div>
-          <a href="https://twitter.com/hulu_jp_bot" class="twitter-follow-button" data-show-count="false">Follow @hulu_jp_bot</a>
-          <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
-        </div>
-        <div class="fb-like" data-href="http://hulu-update.info/" data-send="false" data-layout="button_count" data-width="450" data-show-faces="true"></div>
-        <a href="/rss.xml" target="_blank">
-          <img src="/img/rss.png" />
-        </a>
+        <ul class="breadcrumb">
+          <li class="active"><a href="/">Home</a></li>
+        </ul>
+        <p class="clear"></p>
       </div>
-      <p class="clear"></p>
+
       <p>
         hulu.jpの更新情報を纏める非公式サイトです。
         huluの動画に変更があるかどうかを1時間おきにチェックして、変更があれば更新されます。
@@ -119,6 +120,13 @@
       <script src="js/Chart.js"></script>
       <div id="chart">
         <canvas id="myChart" width="900" height="200"></canvas>
+        <div class="caption">
+          公開タイトル数の遷移
+        </div>
+        <p>
+          hulu.jpで公開されているタイトル数をグラフにしました。
+          多少の誤差がある可能性がありますので、ご了承ください。
+        </p>
       </div>
       <script>
         var data = {
