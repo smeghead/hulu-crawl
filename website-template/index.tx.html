@@ -104,6 +104,18 @@
         最新情報に掲載される情報は、twitter の <a href="https://twitter.com/hulu_jp_bot" target="_blank">@hulu_jp_bot</a> と同じ情報です。
       </p>
 
+      <div class="ad">
+        <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+        <!-- hulu-update.info-wide -->
+        <ins class="adsbygoogle"
+             style="display:inline-block;width:728px;height:90px"
+             data-ad-client="ca-pub-6994803411870749"
+             data-ad-slot="4915170957"></ins>
+        <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+      </div>
+
       <script src="js/Chart.js"></script>
       <div id="chart">
         <canvas id="myChart" width="900" height="200"></canvas>
@@ -113,7 +125,7 @@
           labels : [
 : for $counts -> $c {
   : if substr($c.date, 8) == '01' {
-  '<: $c.date :>',
+  '<: substr($c.date, 5, 2) :>月',
   : } else {
   '', 
   : }
@@ -165,18 +177,6 @@
 //          onAnimationComplete : null  
         });
       </script>
-
-      <div class="ad">
-        <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-        <!-- hulu-update.info-wide -->
-        <ins class="adsbygoogle"
-             style="display:inline-block;width:728px;height:90px"
-             data-ad-client="ca-pub-6994803411870749"
-             data-ad-slot="4915170957"></ins>
-        <script>
-        (adsbygoogle = window.adsbygoogle || []).push({});
-        </script>
-      </div>
 
       <div class="row-fluid">
         <div class="span8">
