@@ -27,9 +27,6 @@ my $conf = qq(
 Log::Log4perl->init(\$conf);
 my $logger = Log::Log4perl->get_logger('main');
 
-# my $api_url = 'http://www2.hulu.jp/content?country=all&genre=%E3%83%89%E3%83%A9%E3%83%9E&type_group=all&ajax=true&page=';
-my $api_url = 'http://www2.hulu.jp/content?country=all&genre=all&type_group=all&ajax=true&page=';
-
 my %opts = ();
 getopts('t:q:n:', \%opts);
 
