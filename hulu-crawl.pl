@@ -178,7 +178,7 @@ sub record_video_count {
     my $count = $row->{count};
     print 'video count: ', $count, "\n";
 
-    my $today = DateTime->today()->strftime('%Y-%m-%d');
+    my $today = DateTime->today(name => 'local')->strftime('%Y-%m-%d');
     print 'today: ', $today, "\n";
 
     $sth = $dbh->prepare(q{delete from video_counts where date = ?});
