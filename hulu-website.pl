@@ -75,7 +75,7 @@ sub create_rss {
 }
 
 sub create_index_page {
-    my ($latest_videos, $all_videos, $counts) = @_;
+    my ($latest_videos, $all_videos, $counts, $ranking_videos) = @_;
 
     my $tx = Text::Xslate->new(
         path => $FindBin::Bin,
@@ -86,6 +86,7 @@ sub create_index_page {
         latest_videos => $latest_videos,
         all_videos => $all_videos,
         counts => $counts,
+        ranking_videos => $ranking_videos,
     };
     mkdir $FindBin::Bin . '/website';
     my $content = $tx->render('website-template/index.tx.html', $data);
@@ -278,10 +279,29 @@ try {
     die $sth->errstr if $sth->err;
     print Dumper(\@counts);
 
+    my @lanking_urls = `grep 'GET /video/[^ ]\\+\\.html' /var/log/nginx/hulu-update.info.access.log | awk '{videos[\$7]++}END{for (key in videos) {print videos[key] " " key}}' | sort -t" " -n -r | head -10 | sed -e 's/[0-9]\\+ //'`;
+    my @ranking_videos = ();
+    foreach my $url (@lanking_urls) {
+        chomp $url;
+        $url =~ s/\.html//;
+        $url =~ s/\/video//;
+        print 'url:', $url, "\n";
+        $sth = $dbh->prepare(q{
+            select v.* from videos as v
+            where v.url like '%' || ? || '%'
+            order by v.title
+        });
+        $sth->execute($url);
+        my $row = $sth->fetchrow_hashref() or die 'failed to fetch.';
+        die $sth->errstr if $sth->err;
+        push @ranking_videos, $row;
+    }
+    print Dumper \@ranking_videos;
+
     create_static_files;
 
     create_rss(\@latest_videos);
-    create_index_page(\@latest_videos, \@all_videos, \@counts);
+    create_index_page(\@latest_videos, \@all_videos, \@counts, \@ranking_videos);
     create_search_page;
 
     create_video_pages($dbh, \@all_videos);

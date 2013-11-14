@@ -240,6 +240,16 @@
           <p><a class="btn" href="mailto:smeghead7+hulu@gmail.com">メールで連絡する</a></p>
         </div>
         <div class="span4">
+          <div class="ranking">
+            <h2>アクセスランキング</h2>
+            <ul class="videos">
+              : for $ranking_videos -> $v {
+                <li>
+                  <div class="title"><a href="video/<: $v.path :>.html"><: $v.title :></a></div>
+                </li>
+              : }
+            </ul>
+          </div>
           <div class="ad">
             <OBJECT classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" codebase="http://fpdownload.macromedia.com/get/flashplayer/current/swflash.cab" id="Player_0bbf1cfb-014e-4aa0-bc5a-5793a6313438"  WIDTH="250px" HEIGHT="250px"> <PARAM NAME="movie" VALUE="http://ws.amazon.co.jp/widgets/q?rt=ss_ssw&ServiceVersion=20070822&MarketPlace=JP&ID=V20070822%2FJP%2Fsmeghead-22%2F8003%2F0bbf1cfb-014e-4aa0-bc5a-5793a6313438&Operation=GetDisplayTemplate"><PARAM NAME="quality" VALUE="high"><PARAM NAME="bgcolor" VALUE="#FFFFFF"><PARAM NAME="allowscriptaccess" VALUE="always"><embed src="http://ws.amazon.co.jp/widgets/q?rt=ss_ssw&ServiceVersion=20070822&MarketPlace=JP&ID=V20070822%2FJP%2Fsmeghead-22%2F8003%2F0bbf1cfb-014e-4aa0-bc5a-5793a6313438&Operation=GetDisplayTemplate" id="Player_0bbf1cfb-014e-4aa0-bc5a-5793a6313438" quality="high" bgcolor="#ffffff" name="Player_0bbf1cfb-014e-4aa0-bc5a-5793a6313438" allowscriptaccess="always"  type="application/x-shockwave-flash" align="middle" height="250px" width="250px"></embed></OBJECT> <NOSCRIPT><A HREF="http://ws.amazon.co.jp/widgets/q?rt=ss_ssw&ServiceVersion=20070822&MarketPlace=JP&ID=V20070822%2FJP%2Fsmeghead-22%2F8003%2F0bbf1cfb-014e-4aa0-bc5a-5793a6313438&Operation=NoScript">Amazon.co.jp ウィジェット</A></NOSCRIPT>
           </div>
