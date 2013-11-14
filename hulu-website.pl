@@ -294,6 +294,9 @@ try {
         $sth->execute($url);
         my $row = $sth->fetchrow_hashref() or die 'failed to fetch.';
         die $sth->errstr if $sth->err;
+        my $path = $row->{url};
+        $path =~ s{.*\/(.*)$}{$1};
+        $row->{path} = $path;
         push @ranking_videos, $row;
     }
     print Dumper \@ranking_videos;
