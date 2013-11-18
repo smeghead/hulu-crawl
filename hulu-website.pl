@@ -245,6 +245,7 @@ try {
     $sth = $dbh->prepare(q{
         select v.* from videos as v
         where v.updated_at > date('now' , '-1 days' )
+          and v.episodes > 0
         order by v.title
     });
     $sth->execute;
