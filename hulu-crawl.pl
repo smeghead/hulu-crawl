@@ -169,9 +169,10 @@ sub record_video_count {
     my ($dbh) = @_;
 
     my $sth = $dbh->prepare(q{
-        select count(*) as count from videos as v
+        select count(*) as count
+        from videos as v
         where v.updated_at > date('now' , '-1 days' )
-        order by v.title
+          and v.episodes > 0
     });
     $sth->execute;
     my $row = $sth->fetchrow_hashref() or die('failed to fetch count.');
