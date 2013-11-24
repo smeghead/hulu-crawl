@@ -11,6 +11,7 @@ use Try::Tiny;
 use Getopt::Std;
 use List::Compare;
 use Config::Simple;
+use JSON qw/decode_json/;
 
 use Log::Log4perl;
 my $config = new Config::Simple($FindBin::Bin . '/twitter.conf');
@@ -31,7 +32,9 @@ my $conf = qq(
 Log::Log4perl->init(\$conf);
 my $logger = Log::Log4perl->get_logger('main');
 
-my $api_url = 'http://www2.hulu.jp/content?country=all&genre=all&type_group=all&ajax=true&page=';
+my $api_url =       'http://www.hulu.jp/mozart/v1.h2o/<apiname>?caption=&country=&decade=&exclude_hulu_content=1&genre=&language=&sort=popular_all_time&_language=ja&_region=jp&items_per_page=32&position=<position>&_user_pgid=24&_content_pgid=24&_device_id=1&region=jp&locale=ja&language=ja&access_token=u3hqs8d3aJqRiJZYU5nrD7CQJ58%3DGOzf8jSX05783024639399a26480b69cb945a5e5e24f6d5f35514b01c1cb3e812225d701bdcf37da422873cc1343140751481749';
+# http://www.hulu.jp/mozart/v1.h2o/shows?caption=&country=&decade=&exclude_hulu_content=1&genre=&language=&sort=popular_all_time&_language=ja&_region=jp&items_per_page=32&position=0&_user_pgid=24&_content_pgid=24&_device_id=1&region=jp&locale=ja&language=ja&access_token=u3hqs8d3aJqRiJZYU5nrD7CQJ58%3DGOzf8jSX05783024639399a26480b69cb945a5e5e24f6d5f35514b01c1cb3e812225d701bdcf37da422873cc1343140751481749
+
 
 my %opts = ();
 getopts('p:', \%opts);
@@ -41,32 +44,46 @@ my $checked_date = DateTime->now->epoch;
 sub parse_videos {
     my ($content) = @_;
 
-    $content =~ s{\A.*\$\("\#show-results-list"\)\.replaceWith\("(.*)"\);.*\z}{$1}xms;
-    $content =~ s{\\}{}g;
-    return grep {$_} map {
-        my ($url, $title) = $_ =~ m{
-            show-title-container .*
-            href="([^"]+)" .*
-            class="bold-link[^"]*">([^<]+)</a> .*
-        }mxs;
-        my ($seasons, $episodes) = $_ =~ m{
-            digit'>(\d+)< .*
-            digit'>(\d+)< .*
-        }mxs;
-        $title ?
-            +{
-                url => $url,
-                title => $title,
-                seasons => $seasons || 1,
-                episodes => $episodes || 1,
-            } : undef;
-    } split /<\\?\/td>/, $content;
+    my $data = decode_json($content);
+    my @videos = ();
+    foreach my $video (@{$data->{data}}) {
+        my $show = $video->{show};
+#         $logger->debug($show->{name});
+        push @videos, +{
+            url => 'http://www2.hulu.jp/' . $show->{canonical_name},
+            title => $show->{name},
+            seasons => $show->{seasons_count} || 1,
+            episodes => $show->{videos_count} || 1,
+        };
+    }
+    return @videos;
+#     $content =~ s{\A.*\$\("\#show-results-list"\)\.replaceWith\("(.*)"\);.*\z}{$1}xms;
+#     $content =~ s{\\}{}g;
+#     return grep {$_} map {
+#         my ($url, $title) = $_ =~ m{
+#             show-title-container .*
+#             href="([^"]+)" .*
+#             class="bold-link[^"]*">([^<]+)</a> .*
+#         }mxs;
+#         my ($seasons, $episodes) = $_ =~ m{
+#             digit'>(\d+)< .*
+#             digit'>(\d+)< .*
+#         }mxs;
+#         $title ?
+#             +{
+#                 url => $url,
+#                 title => $title,
+#                 seasons => $seasons || 1,
+#                 episodes => $episodes || 1,
+#             } : undef;
+#     } split /<\\?\/td>/, $content;
 }
 
 sub exists_check {
     my ($vs, $adds) = @_;
     
     my @new_videos = ();
+#     $logger->debug(Dumper $adds);
     V: for my $nv (@$adds) {
         for my $v (@$vs) {
 #            print 'exists ' . encode_utf8($v->{url}) . "\n" if $v->{url} eq $nv->{url};
@@ -192,12 +209,32 @@ sub record_video_count {
     print 'recorded count.ok', "\n";
 }
 
+sub get_paged_api_url {
+    my ($apiname, $p) = @_;
+    my $position = $p * 32;
+    my $api = $api_url;
+    $api =~ s/<apiname>/$apiname/;
+    $api =~ s/<position>/$position/;
+    return $api;
+}
 try {
     my @videos = ();
-    for my $p (1 .. 100) {
+    $logger->debug('dramas');
+    for my $p (0 .. 100) {
         $logger->debug('page:' . $p);
-        my $content = LWP::UserAgent->new->request(HTTP::Request->new(GET => $api_url . $p))->content;
-        $content = decode_utf8($content);
+        my $content = LWP::UserAgent->new->request(HTTP::Request->new(GET => get_paged_api_url('shows', $p)))->content;
+        $content = encode_utf8($content);
+        my @adds = parse_videos($content);
+        @adds = exists_check(\@videos, \@adds);
+        last unless scalar @adds;
+
+        push @videos, @adds;
+    }
+    $logger->debug('movies');
+    for my $p (0 .. 100) {
+        $logger->debug('page:' . $p);
+        my $content = LWP::UserAgent->new->request(HTTP::Request->new(GET => get_paged_api_url('movies', $p)))->content;
+        $content = encode_utf8($content);
         my @adds = parse_videos($content);
         @adds = exists_check(\@videos, \@adds);
         last unless scalar @adds;
