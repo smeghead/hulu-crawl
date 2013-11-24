@@ -78,41 +78,65 @@
 
     <div class="container">
 
-      <ul class="breadcrumb">
-        <li class="active"><a href="/">Home</a></li>
-      </ul>
-
-      <h1>hulu.jp 更新情報</h1>
-      <div class="social-buttons">
-        <div>
-          <a href="https://twitter.com/share" class="twitter-share-button" data-via="hulu_jp_bot" data-lang="ja" data-related="hulu_jp_bot">ツイート</a>
-          <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+      <div class="breadcrumb-block">
+        <div class="social-buttons">
+          <div>
+            <a href="https://twitter.com/share" class="twitter-share-button" data-via="hulu_jp_bot" data-lang="ja" data-related="hulu_jp_bot">ツイート</a>
+            <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+          </div>
+          <div>
+            <a href="https://twitter.com/hulu_jp_bot" class="twitter-follow-button" data-show-count="false">Follow @hulu_jp_bot</a>
+            <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+          </div>
+          <div class="fb-like" data-href="http://hulu-update.info/" data-send="false" data-layout="button_count" data-width="450" data-show-faces="true"></div>
+          <a href="/rss.xml" target="_blank">
+            <img src="/img/rss.png" />
+          </a>
         </div>
-        <div>
-          <a href="https://twitter.com/hulu_jp_bot" class="twitter-follow-button" data-show-count="false">Follow @hulu_jp_bot</a>
-          <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
-        </div>
-        <div class="fb-like" data-href="http://hulu-update.info/" data-send="false" data-layout="button_count" data-width="450" data-show-faces="true"></div>
-        <a href="/rss.xml" target="_blank">
-          <img src="/img/rss.png" />
-        </a>
+        <ul class="breadcrumb">
+          <li class="active"><a href="/">Home</a></li>
+        </ul>
+        <p class="clear"></p>
       </div>
-      <p class="clear"></p>
+
       <p>
         hulu.jpの更新情報を纏める非公式サイトです。
         huluの動画に変更があるかどうかを1時間おきにチェックして、変更があれば更新されます。
         最新情報に掲載される情報は、twitter の <a href="https://twitter.com/hulu_jp_bot" target="_blank">@hulu_jp_bot</a> と同じ情報です。
       </p>
 
+      <div class="ad">
+        <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+        <!-- hulu-update.info-wide -->
+        <ins class="adsbygoogle"
+             style="display:inline-block;width:728px;height:90px"
+             data-ad-client="ca-pub-6994803411870749"
+             data-ad-slot="4915170957"></ins>
+        <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+      </div>
+
       <script src="js/Chart.js"></script>
       <div id="chart">
         <canvas id="myChart" width="900" height="200"></canvas>
+        <div class="caption">
+          公開タイトル数の遷移
+        </div>
+        <p>
+          hulu.jpで公開されているタイトル数をグラフにしました。
+          多少の誤差がある可能性がありますので、ご了承ください。
+        </p>
       </div>
       <script>
         var data = {
           labels : [
 : for $counts -> $c {
-  '<: $c.date :>',
+  : if substr($c.date, 8) == '01' {
+  '<: substr($c.date, 5, 2) :>月',
+  : } else {
+  '', 
+  : }
 : }
                      ],
           datasets : [
@@ -149,7 +173,7 @@
 //          scaleGridLineColor : "#ccc",
 //          scaleGridLineWidth : 1, 
 //          bezierCurve : false,
-//          pointDot : true,
+          pointDot : false,
 //          pointDotRadius : 6,
 //          pointDotStrokeWidth : 0,
 //          datasetStroke : true,
@@ -161,18 +185,6 @@
 //          onAnimationComplete : null  
         });
       </script>
-
-      <div class="ad">
-        <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-        <!-- hulu-update.info-wide -->
-        <ins class="adsbygoogle"
-             style="display:inline-block;width:728px;height:90px"
-             data-ad-client="ca-pub-6994803411870749"
-             data-ad-slot="4915170957"></ins>
-        <script>
-        (adsbygoogle = window.adsbygoogle || []).push({});
-        </script>
-      </div>
 
       <div class="row-fluid">
         <div class="span8">
@@ -228,6 +240,16 @@
           <p><a class="btn" href="mailto:smeghead7+hulu@gmail.com">メールで連絡する</a></p>
         </div>
         <div class="span4">
+          <div class="ranking">
+            <h2>アクセスランキング</h2>
+            <ul class="videos">
+              : for $ranking_videos -> $v {
+                <li>
+                  <div class="title"><a href="video/<: $v.path :>.html"><: $v.title :></a></div>
+                </li>
+              : }
+            </ul>
+          </div>
           <div class="ad">
             <OBJECT classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" codebase="http://fpdownload.macromedia.com/get/flashplayer/current/swflash.cab" id="Player_0bbf1cfb-014e-4aa0-bc5a-5793a6313438"  WIDTH="250px" HEIGHT="250px"> <PARAM NAME="movie" VALUE="http://ws.amazon.co.jp/widgets/q?rt=ss_ssw&ServiceVersion=20070822&MarketPlace=JP&ID=V20070822%2FJP%2Fsmeghead-22%2F8003%2F0bbf1cfb-014e-4aa0-bc5a-5793a6313438&Operation=GetDisplayTemplate"><PARAM NAME="quality" VALUE="high"><PARAM NAME="bgcolor" VALUE="#FFFFFF"><PARAM NAME="allowscriptaccess" VALUE="always"><embed src="http://ws.amazon.co.jp/widgets/q?rt=ss_ssw&ServiceVersion=20070822&MarketPlace=JP&ID=V20070822%2FJP%2Fsmeghead-22%2F8003%2F0bbf1cfb-014e-4aa0-bc5a-5793a6313438&Operation=GetDisplayTemplate" id="Player_0bbf1cfb-014e-4aa0-bc5a-5793a6313438" quality="high" bgcolor="#ffffff" name="Player_0bbf1cfb-014e-4aa0-bc5a-5793a6313438" allowscriptaccess="always"  type="application/x-shockwave-flash" align="middle" height="250px" width="250px"></embed></OBJECT> <NOSCRIPT><A HREF="http://ws.amazon.co.jp/widgets/q?rt=ss_ssw&ServiceVersion=20070822&MarketPlace=JP&ID=V20070822%2FJP%2Fsmeghead-22%2F8003%2F0bbf1cfb-014e-4aa0-bc5a-5793a6313438&Operation=NoScript">Amazon.co.jp ウィジェット</A></NOSCRIPT>
           </div>
