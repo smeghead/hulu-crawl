@@ -48,7 +48,7 @@ sub parse_videos {
     my @videos = ();
     foreach my $video (@{$data->{data}}) {
         my $show = $video->{show};
-#         $logger->debug($show->{name});
+        $logger->debug(encode_utf8($show->{name}));
         push @videos, +{
             url => 'http://www2.hulu.jp/' . $show->{canonical_name},
             title => $show->{name},
@@ -224,7 +224,7 @@ try {
     for my $p (0 .. 100) {
         $logger->debug('page:' . $p);
         my $content = LWP::UserAgent->new->request(HTTP::Request->new(GET => get_paged_api_url('shows', $p)))->content;
-        $content = encode_utf8($content);
+#        $content = decode_utf8($content);
         my @adds = parse_videos($content);
         @adds = exists_check(\@videos, \@adds);
         last unless scalar @adds;
@@ -235,7 +235,7 @@ try {
     for my $p (0 .. 100) {
         $logger->debug('page:' . $p);
         my $content = LWP::UserAgent->new->request(HTTP::Request->new(GET => get_paged_api_url('movies', $p)))->content;
-        $content = encode_utf8($content);
+#        $content = decode_utf8($content);
         my @adds = parse_videos($content);
         @adds = exists_check(\@videos, \@adds);
         last unless scalar @adds;
