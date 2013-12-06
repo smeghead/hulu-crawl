@@ -32,7 +32,8 @@ my $conf = qq(
 Log::Log4perl->init(\$conf);
 my $logger = Log::Log4perl->get_logger('main');
 
-my $api_url =       'http://www.hulu.jp/mozart/v1.h2o/<apiname>?caption=&country=&decade=&exclude_hulu_content=1&genre=&language=&sort=popular_all_time&_language=ja&_region=jp&items_per_page=32&position=<position>&_user_pgid=24&_content_pgid=24&_device_id=1&region=jp&locale=ja&language=ja&access_token=u3hqs8d3aJqRiJZYU5nrD7CQJ58%3DGOzf8jSX05783024639399a26480b69cb945a5e5e24f6d5f35514b01c1cb3e812225d701bdcf37da422873cc1343140751481749';
+my $access_token = 'wFJcBN31cxo9mJ2bC9ZJj3BYC1s%3DJHZzJcEI2350db24cfcce20eee27f5044052ef907c41d00b662c9f4440cfd0c6971e2335440fb3c10f297e4202c2e1db2e3a8233';
+my $api_url = 'http://www.hulu.jp/mozart/v1.h2o/<apiname>?caption=&country=&decade=&exclude_hulu_content=1&genre=&language=&sort=popular_all_time&_language=ja&_region=jp&items_per_page=32&position=<position>&_user_pgid=24&_content_pgid=24&_device_id=1&region=jp&locale=ja&language=ja&access_token=' . $access_token;
 # http://www.hulu.jp/mozart/v1.h2o/shows?caption=&country=&decade=&exclude_hulu_content=1&genre=&language=&sort=popular_all_time&_language=ja&_region=jp&items_per_page=32&position=0&_user_pgid=24&_content_pgid=24&_device_id=1&region=jp&locale=ja&language=ja&access_token=u3hqs8d3aJqRiJZYU5nrD7CQJ58%3DGOzf8jSX05783024639399a26480b69cb945a5e5e24f6d5f35514b01c1cb3e812225d701bdcf37da422873cc1343140751481749
 
 
@@ -218,12 +219,14 @@ sub get_paged_api_url {
     $api =~ s/<position>/$position/;
     return $api;
 }
+
 try {
     my @videos = ();
     $logger->debug('dramas');
     for my $p (0 .. 100) {
         $logger->debug('page:' . $p);
         my $content = LWP::UserAgent->new->request(HTTP::Request->new(GET => get_paged_api_url('shows', $p)))->content;
+#        $logger->debug($content);
 #        $content = decode_utf8($content);
         my @adds = parse_videos($content);
         @adds = exists_check(\@videos, \@adds);
@@ -235,6 +238,7 @@ try {
     for my $p (0 .. 100) {
         $logger->debug('page:' . $p);
         my $content = LWP::UserAgent->new->request(HTTP::Request->new(GET => get_paged_api_url('movies', $p)))->content;
+#        $logger->debug($content);
 #        $content = decode_utf8($content);
         my @adds = parse_videos($content);
         @adds = exists_check(\@videos, \@adds);
@@ -242,6 +246,8 @@ try {
 
         push @videos, @adds;
     }
+    $logger->debug('videos count:' . scalar @videos);
+    die 'no videos. crawl failed.' unless scalar @videos;
 
     use DBI;
     my $dbh = DBI->connect('dbi:SQLite:dbname=' . $FindBin::Bin . '/videos.db', "", "", {PrintError => 1, AutoCommit => 1});
