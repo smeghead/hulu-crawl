@@ -36,7 +36,10 @@ my $logger = Log::Log4perl->get_logger('main');
 #my $access_token = 'B0NHRaNHTLb0W7lzLi6tfKcUSd4%3DRF6N_52Q31f7a3876cd874110ccc9a431d58728b81cd616f7d58ee807c40d2aa86a1dee917c063ed50e5854e1496432d0f898f09';
 #my $access_token = 'AAxB_McfVpZows4W4os5AGrNF8c%3DWwQWwij-1950832503a09dac2d1dd859506c28f827fcf02400108e808ce8da49d83371c718268979ffdc1140c026893e5efdc06c';
 #my $access_token = 'ngzeZk_C62qWVYe_b8RjJpx-_xU%3DLjX1KfC52ab80ba10215e595594cff9df3af9cdc542fb6a003f7af6cfc894306a4bf34726024538d8d44453fc8224d4fece87918';
-my $access_token = 'UPZPb6_QJafnJWxkwsWZqacZHxw%3Dlnqcycxp93777b0072ef4c138d7bc9f5b3e08594749fa4ef3a54c08cfb137fbeae5d4cf9485e9a3fb81fafa353904f2c4138c2e2';
+#my $access_token = 'UPZPb6_QJafnJWxkwsWZqacZHxw%3Dlnqcycxp93777b0072ef4c138d7bc9f5b3e08594749fa4ef3a54c08cfb137fbeae5d4cf9485e9a3fb81fafa353904f2c4138c2e2';
+#my $access_token = 'NjIt1BUp0_oB5iuI5j_fOKhfzXw%3DQi_vaJMo61d2f53c9fd5d32348fd7e3b0807eb1a088776191cc1e14f1dcf7f98e3e9265a9c932c267ef19844baf80594014dd5fa';
+my $get_token_command = $FindBin::Bin . '/hulu-gettoken.py';
+my $access_token = `$get_token_command`;
 my $api_url = 'http://www.hulu.jp/mozart/v1.h2o/<apiname>?caption=&country=&decade=&exclude_hulu_content=1&genre=&language=&sort=popular_all_time&_language=ja&_region=jp&items_per_page=32&position=<position>&_user_pgid=24&_content_pgid=24&_device_id=1&region=jp&locale=ja&language=ja&access_token=' . $access_token;
 # http://www.hulu.jp/mozart/v1.h2o/shows?caption=&country=&decade=&exclude_hulu_content=1&genre=&language=&sort=popular_all_time&_language=ja&_region=jp&items_per_page=32&position=0&_user_pgid=24&_content_pgid=24&_device_id=1&region=jp&locale=ja&language=ja&access_token=u3hqs8d3aJqRiJZYU5nrD7CQJ58%3DGOzf8jSX05783024639399a26480b69cb945a5e5e24f6d5f35514b01c1cb3e812225d701bdcf37da422873cc1343140751481749
 
