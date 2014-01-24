@@ -241,6 +241,26 @@
         </div>
         <div class="span4">
           <div class="ranking">
+            <h2>配信終了作品</h2>
+            <ul class="videos">
+              : for $expired_videos -> $v {
+                <li>
+                  <div class="">
+                    <: $v.expire :>
+                  </div>
+                  <div class="title">
+                    <: $v.title :>
+                  </div>
+                  : if $v.seasons {
+                    <div class="">
+                      <: $v.seasons :>
+                    </div>
+                  : }
+                </li>
+              : }
+            </ul>
+          </div>
+          <div class="ranking">
             <h2>アクセスランキング</h2>
             <ul class="videos">
               : for $ranking_videos -> $v {

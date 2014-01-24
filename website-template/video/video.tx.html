@@ -127,6 +127,7 @@
             : for $histories -> $v {
             <li>
               <div class="info">
+                <: $v.updated_at :>
                 : if $v.is_new {
                 <span class="badge badge-important">新規追加</span>
                 : } else {
@@ -139,7 +140,6 @@
                 : if $v.episodes > 1 {
                 <span class="badge badge-info">シーズン数: <: $v.seasons :></span> <span class="badge badge-success">エピソード数: <: $v.episodes :></span>
                 : }
-                <: $v.updated_at :>
               </div>
             </li>
             : }

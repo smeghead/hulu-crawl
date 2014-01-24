@@ -12,6 +12,8 @@ use Getopt::Std;
 use List::Compare;
 use Config::Simple;
 use JSON qw/decode_json/;
+use URI;
+use Web::Scraper;
 
 use Log::Log4perl;
 my $config = new Config::Simple($FindBin::Bin . '/twitter.conf');
@@ -32,17 +34,23 @@ my $conf = qq(
 Log::Log4perl->init(\$conf);
 my $logger = Log::Log4perl->get_logger('main');
 
-#my $access_token = 'wFJcBN31cxo9mJ2bC9ZJj3BYC1s%3DJHZzJcEI2350db24cfcce20eee27f5044052ef907c41d00b662c9f4440cfd0c6971e2335440fb3c10f297e4202c2e1db2e3a8233';
-#my $access_token = 'B0NHRaNHTLb0W7lzLi6tfKcUSd4%3DRF6N_52Q31f7a3876cd874110ccc9a431d58728b81cd616f7d58ee807c40d2aa86a1dee917c063ed50e5854e1496432d0f898f09';
-#my $access_token = 'AAxB_McfVpZows4W4os5AGrNF8c%3DWwQWwij-1950832503a09dac2d1dd859506c28f827fcf02400108e808ce8da49d83371c718268979ffdc1140c026893e5efdc06c';
-#my $access_token = 'ngzeZk_C62qWVYe_b8RjJpx-_xU%3DLjX1KfC52ab80ba10215e595594cff9df3af9cdc542fb6a003f7af6cfc894306a4bf34726024538d8d44453fc8224d4fece87918';
-#my $access_token = 'UPZPb6_QJafnJWxkwsWZqacZHxw%3Dlnqcycxp93777b0072ef4c138d7bc9f5b3e08594749fa4ef3a54c08cfb137fbeae5d4cf9485e9a3fb81fafa353904f2c4138c2e2';
-#my $access_token = 'NjIt1BUp0_oB5iuI5j_fOKhfzXw%3DQi_vaJMo61d2f53c9fd5d32348fd7e3b0807eb1a088776191cc1e14f1dcf7f98e3e9265a9c932c267ef19844baf80594014dd5fa';
 my $get_token_command = $FindBin::Bin . '/hulu-gettoken.py';
 my $access_token = `$get_token_command`;
 my $api_url = 'http://www.hulu.jp/mozart/v1.h2o/<apiname>?caption=&country=&decade=&exclude_hulu_content=1&genre=&language=&sort=popular_all_time&_language=ja&_region=jp&items_per_page=32&position=<position>&_user_pgid=24&_content_pgid=24&_device_id=1&region=jp&locale=ja&language=ja&access_token=' . $access_token;
 # http://www.hulu.jp/mozart/v1.h2o/shows?caption=&country=&decade=&exclude_hulu_content=1&genre=&language=&sort=popular_all_time&_language=ja&_region=jp&items_per_page=32&position=0&_user_pgid=24&_content_pgid=24&_device_id=1&region=jp&locale=ja&language=ja&access_token=u3hqs8d3aJqRiJZYU5nrD7CQJ58%3DGOzf8jSX05783024639399a26480b69cb945a5e5e24f6d5f35514b01c1cb3e812225d701bdcf37da422873cc1343140751481749
 
+my @expire_urls = qw{
+    http://www.hulu.jp/support/article/26284950
+    http://www.hulu.jp/support/article/25746809
+    http://www.hulu.jp/support/article/25746829
+    http://www.hulu.jp/support/article/26284970
+    http://www.hulu.jp/support/article/25746859
+    http://www.hulu.jp/support/article/26284990
+    http://www.hulu.jp/support/article/25746869
+    http://www.hulu.jp/support/article/25829844
+    http://www.hulu.jp/support/article/25829854
+    http://www.hulu.jp/support/article/25829864
+};
 
 my %opts = ();
 getopts('p:', \%opts);
@@ -65,36 +73,14 @@ sub parse_videos {
         };
     }
     return @videos;
-#     $content =~ s{\A.*\$\("\#show-results-list"\)\.replaceWith\("(.*)"\);.*\z}{$1}xms;
-#     $content =~ s{\\}{}g;
-#     return grep {$_} map {
-#         my ($url, $title) = $_ =~ m{
-#             show-title-container .*
-#             href="([^"]+)" .*
-#             class="bold-link[^"]*">([^<]+)</a> .*
-#         }mxs;
-#         my ($seasons, $episodes) = $_ =~ m{
-#             digit'>(\d+)< .*
-#             digit'>(\d+)< .*
-#         }mxs;
-#         $title ?
-#             +{
-#                 url => $url,
-#                 title => $title,
-#                 seasons => $seasons || 1,
-#                 episodes => $episodes || 1,
-#             } : undef;
-#     } split /<\\?\/td>/, $content;
 }
 
 sub exists_check {
     my ($vs, $adds) = @_;
     
     my @new_videos = ();
-#     $logger->debug(Dumper $adds);
     V: for my $nv (@$adds) {
         for my $v (@$vs) {
-#            print 'exists ' . encode_utf8($v->{url}) . "\n" if $v->{url} eq $nv->{url};
             next V if $v->{url} eq $nv->{url};
         }
         push @new_videos, $nv;
@@ -190,6 +176,59 @@ sub check_deleted_videos {
     }
 }
 
+sub expired_videos {
+    my ($dbh) = @_;
+ 
+    my @expires = ();
+    foreach my $url (@expire_urls) {
+        print 'url:', $url, "\n";
+        my $videos = scraper {
+          # Parse all LIs with the class "status", store them into a resulting
+          # array 'videos'.  We embed another scraper for each tweet.
+          process "div.support-article-content table tr", "videos[]" => scraper {
+              # And, in that array, pull in the elementy with the class
+              # "entry-content", "entry-date" and the link
+              process "td", 'cells[]' => 'TEXT';
+          };
+        };
+
+        my $res = $videos->scrape( URI->new($url) );
+
+        # The result has the populated videos array
+        for my $video (@{$res->{videos}}) {
+            my $title = $video->{cells}->[0];
+            $title =~ s/^\s+//;
+            $title =~ s/\s+$//;
+            next if $title eq 'テレビ番組';
+            next if $title eq 'タイトル';
+            next if $title eq '映画';
+
+            my $column_count = scalar @{$video->{cells}};
+            my $seasons = 0;
+            if ($column_count == 3) {
+                $seasons = $video->{cells}->[1];
+            }
+            my $expire = $video->{cells}->[$column_count - 1];
+            print encode_utf8 $video->{cells}->[$column_count - 1], "\n";
+            push @expires, {title => $title, seasons => $seasons, expire => $expire};
+        }
+    }
+
+    my $sth = $dbh->prepare(q{
+        delete from expires
+    });
+    $sth->execute;
+
+    $sth = $dbh->prepare(q{
+        insert into expires (title, seasons, expire, created_at, updated_at) values (?, ?, ?, datetime('now', 'localtime'), datetime('now', 'localtime'))
+    });
+    foreach my $v (@expires) {
+        $sth->execute($v->{title}, $v->{seasons}, $v->{expire});
+    }
+
+    print 'expired_videos.ok', "\n";
+}
+
 sub record_video_count {
     my ($dbh) = @_;
 
@@ -233,8 +272,6 @@ try {
     for my $p (0 .. 100) {
         $logger->debug('page:' . $p);
         my $content = LWP::UserAgent->new->request(HTTP::Request->new(GET => get_paged_api_url('shows', $p)))->content;
-#        $logger->debug($content);
-#        $content = decode_utf8($content);
         my @adds = parse_videos($content);
         @adds = exists_check(\@videos, \@adds);
         last unless scalar @adds;
@@ -245,8 +282,6 @@ try {
     for my $p (0 .. 100) {
         $logger->debug('page:' . $p);
         my $content = LWP::UserAgent->new->request(HTTP::Request->new(GET => get_paged_api_url('movies', $p)))->content;
-#        $logger->debug($content);
-#        $content = decode_utf8($content);
         my @adds = parse_videos($content);
         @adds = exists_check(\@videos, \@adds);
         last unless scalar @adds;
@@ -329,6 +364,8 @@ try {
 
     record_video_count($dbh);
 
+    expired_videos($dbh);
+
     $dbh->disconnect;
 } catch {
     $logger->error_die("caught error: $_");
@@ -343,4 +380,5 @@ create table updates (id integer primary key, video_id integer not null, is_new 
 create table published_videos (id integer primary key, checked_date varchar, video_id integer, created_at datetime, updated_at datetime);
 create index published_videos_checked_date on published_videos(checked_date);
 create table video_counts (id integer primary key, date varchar not null, count integer);
+create table expires (id integer primary key, title varchar, seasons integer, expire varchar, created_at datetime, updated_at datetime);
 

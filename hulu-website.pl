@@ -75,7 +75,7 @@ sub create_rss {
 }
 
 sub create_index_page {
-    my ($latest_videos, $all_videos, $counts, $ranking_videos) = @_;
+    my ($latest_videos, $all_videos, $counts, $ranking_videos, $expired_videos) = @_;
 
     my $tx = Text::Xslate->new(
         path => $FindBin::Bin,
@@ -87,6 +87,7 @@ sub create_index_page {
         all_videos => $all_videos,
         counts => $counts,
         ranking_videos => $ranking_videos,
+        expired_videos => $expired_videos,
     };
     mkdir $FindBin::Bin . '/website';
     my $content = $tx->render('website-template/index.tx.html', $data);
@@ -244,6 +245,18 @@ try {
     use DBI;
     my $dbh = DBI->connect('dbi:SQLite:dbname=' . $FindBin::Bin . '/videos.db', "", "", {PrintError => 1, AutoCommit => 1});
 
+    # expired_videos
+    my $sth = $dbh->prepare(q{
+        select * from expires
+    });
+    $sth->execute;
+
+    my @expired_videos = ();
+    while (my $row = $sth->fetchrow_hashref()){
+        push @expired_videos, $row;
+    }
+    die $sth->errstr if $sth->err;
+
     # latest_videos
     my $sth = $dbh->prepare(q{
         select u.*, v.title, v.url from updates as u
@@ -326,7 +339,7 @@ try {
     create_static_files;
 
     create_rss(\@latest_videos);
-    create_index_page(\@latest_videos, \@all_videos, \@counts, \@ranking_videos);
+    create_index_page(\@latest_videos, \@all_videos, \@counts, \@ranking_videos, \@expired_videos);
     create_search_page;
 
     create_video_pages($dbh, \@all_videos);
