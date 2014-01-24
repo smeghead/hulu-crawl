@@ -121,13 +121,21 @@
           <div class="goto-hulu">
             <a href="<: $video.url :>" class="btn btn-primary btn-large" target="_blank">今からhuluで見る</a>
           </div>
-          <h2>最新情報</h2>
+          <h2>最新履歴</h2>
           : if $histories.size() {
           <ul>
             : for $histories -> $v {
             <li>
               <div class="info">
-                <: if $v.is_new {'新規追加'} else {'更新'} :>
+                : if $v.is_new {
+                <span class="badge badge-important">新規追加</span>
+                : } else {
+                  : if $v.episodes == 0 {
+                <span class="badge badge-error">削除</span>
+                  : } else {
+                <span class="badge badge-warning">更新</span>
+                  : }
+                : }
                 : if $v.episodes > 1 {
                 <span class="badge badge-info">シーズン数: <: $v.seasons :></span> <span class="badge badge-success">エピソード数: <: $v.episodes :></span>
                 : }

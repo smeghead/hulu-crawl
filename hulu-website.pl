@@ -166,11 +166,33 @@ sub table_format {
 }
 
 sub create_video_pages {
-    my ($dbh, $all_videos) = @_;
+    my ($dbh) = @_;
+
+    # all_videos
+    my $sth = $dbh->prepare(q{
+        select v.* from videos as v
+        order by v.title
+    });
+    $sth->execute;
+
+    my @all_videos = ();
+    my $last_index = '';
+    while (my $row = $sth->fetchrow_hashref()){
+        my $path = $row->{url};
+        $path =~ s{.*\/(.*)$}{$1};
+        $row->{path} = $path;
+        my $index = substr $row->{title}, 0, 1;
+        if ($index ne $last_index) {
+            $row->{index} = $index;
+            $last_index = $index;
+        }
+        push @all_videos, $row;
+    }
+    die $sth->errstr if $sth->err;
 
     my $tx = Text::Xslate->new(path => $FindBin::Bin);
 
-    for my $video (@$all_videos) {
+    for my $video (@all_videos) {
         # histories
         my $sth = $dbh->prepare(q{
             select u.* from updates as u
@@ -300,7 +322,6 @@ try {
         $row->{path} = $path;
         push @ranking_videos, $row;
     }
-    print Dumper \@ranking_videos;
 
     create_static_files;
 
