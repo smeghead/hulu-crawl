@@ -176,6 +176,13 @@ sub check_deleted_videos {
     }
 }
 
+sub date_format {
+    my ($s) = @_;
+
+    my ($y, $m, $d) = $s =~ m{(\d+)年(\d+)月(\d+)日};
+    return sprintf("%04d年%02d月%02d日", $y, $m, $d);
+}
+
 sub expired_videos {
     my ($dbh) = @_;
  
@@ -208,7 +215,7 @@ sub expired_videos {
             if ($column_count == 3) {
                 $seasons = $video->{cells}->[1];
             }
-            my $expire = $video->{cells}->[$column_count - 1];
+            my $expire = date_format($video->{cells}->[$column_count - 1]);
             print encode_utf8 $video->{cells}->[$column_count - 1], "\n";
             push @expires, {title => $title, seasons => $seasons, expire => $expire};
         }

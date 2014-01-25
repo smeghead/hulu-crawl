@@ -75,7 +75,7 @@ sub create_rss {
 }
 
 sub create_index_page {
-    my ($latest_videos, $all_videos, $counts, $ranking_videos, $expired_videos) = @_;
+    my ($latest_videos, $all_videos, $counts, $ranking_videos) = @_;
 
     my $tx = Text::Xslate->new(
         path => $FindBin::Bin,
@@ -87,11 +87,30 @@ sub create_index_page {
         all_videos => $all_videos,
         counts => $counts,
         ranking_videos => $ranking_videos,
-        expired_videos => $expired_videos,
     };
     mkdir $FindBin::Bin . '/website';
     my $content = $tx->render('website-template/index.tx.html', $data);
     my $out_file = $FindBin::Bin . '/website/index.html';
+    open my $out_fh, ">", $out_file
+        or die "Cannot open $out_file for write: $!";
+    print $out_fh encode_utf8($content);
+    close $out_fh;
+}
+
+sub create_expired_page {
+    my ($expired_videos) = @_;
+
+    my $tx = Text::Xslate->new(
+        path => $FindBin::Bin,
+        module => ['Text::Xslate::Bridge::Star'],
+    );
+
+    my $data = {
+        expired_videos => $expired_videos,
+    };
+    mkdir $FindBin::Bin . '/website';
+    my $content = $tx->render('website-template/expired.tx.html', $data);
+    my $out_file = $FindBin::Bin . '/website/expired.html';
     open my $out_fh, ">", $out_file
         or die "Cannot open $out_file for write: $!";
     print $out_fh encode_utf8($content);
@@ -248,6 +267,7 @@ try {
     # expired_videos
     my $sth = $dbh->prepare(q{
         select * from expires
+        order by expire
     });
     $sth->execute;
 
@@ -339,7 +359,8 @@ try {
     create_static_files;
 
     create_rss(\@latest_videos);
-    create_index_page(\@latest_videos, \@all_videos, \@counts, \@ranking_videos, \@expired_videos);
+    create_index_page(\@latest_videos, \@all_videos, \@counts, \@ranking_videos);
+    create_expired_page(\@expired_videos);
     create_search_page;
 
     create_video_pages($dbh, \@all_videos);

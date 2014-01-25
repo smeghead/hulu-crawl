@@ -2,10 +2,10 @@
 <html lang="ja">
   <head>
     <meta charset="utf-8">
-    <title>hulu.jp 更新情報</title>
+    <title>配信期限のあるタイトル hulu.jp 更新情報</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="keyword" content="hulu.jp, hulu.jp更新情報, 動画, 映画">
-    <meta name="description" content="hulu.jpの更新情報を纏めています。">
+    <meta name="keyword" content="hulu.jp, 配信期限, hulu.jp更新情報, 動画, 映画">
+    <meta name="description" content="配信期限のあるタイトルの情報です。 hulu.jpの更新情報を纏めています。">
     <meta name="author" content="smeghead">
 
     <!-- Le styles -->
@@ -66,12 +66,10 @@
           <a class="brand" href="/">hulu.jp 更新情報</a>
           <div class="nav-collapse collapse">
             <ul class="nav">
-              <li class="active"><a href="/">Home</a></li>
+              <li><a href="/">Home</a></li>
               <li><a href="#all">公開中動画一覧</a></li>
               <li><a href="/search.html">動画検索</a></li>
-              <li><a href="/expired.html">配信期限</a></li>
-              <li><a href="#links">リンク</a></li>
-              <li><a href="#contact">Contact</a></li>
+              <li class="active"><a href="/expired.html">配信期限</a></li>
             </ul>
           </div><!--/.nav-collapse -->
         </div>
@@ -102,13 +100,7 @@
       </div>
 
       <p>
-        hulu.jpの更新情報を纏める非公式サイトです。
-        huluの動画に変更があるかどうかを1時間おきにチェックして、変更があれば更新されます。
-        最新情報に掲載される情報は、twitter の <a href="https://twitter.com/hulu_jp_bot" target="_blank">@hulu_jp_bot</a> と同じ情報です。
-      </p>
-      <p>
-        配信期限のあるタイトルを纏めるページを作成しました。
-        <a href="/expired.html">配信期限のあるタイトル一覧</a>
+        hulu.jpの配信期限のあるタイトルを纏めています。
       </p>
 
       <div class="ad">
@@ -123,139 +115,28 @@
         </script>
       </div>
 
-      <script src="js/Chart.js"></script>
-      <div id="chart">
-        <canvas id="myChart" width="900" height="200"></canvas>
-        <div class="caption">
-          公開タイトル数の遷移
-        </div>
-        <p>
-          hulu.jpで公開されているタイトル数をグラフにしました。
-          多少の誤差がある可能性がありますので、ご了承ください。
-        </p>
-      </div>
-      <script>
-        var data = {
-          labels : [
-: for $counts -> $c {
-  : if substr($c.date, 8) == '01' {
-  '<: substr($c.date, 5, 2) :>月',
-  : } else {
-  '', 
-  : }
-: }
-                     ],
-          datasets : [
-            {
-              fillColor : "rgba(0,180,255,0.1)",
-              strokeColor : "#66ccff",
-              pointColor : "#66ccff",
-              pointStrokeColor : "#fff",
-              data : [
-: for $counts -> $c {
-  <: $c.count :>,
-: }
-              ]
-            }
-          ]
-        }
-        var ctx = document.getElementById("myChart").getContext("2d");
-        new Chart(ctx).Line(data,{
-          bezierCurve : false,
-//          scaleOverlay : true,
-//          scaleOverride : true,
-//          scaleSteps : 5,
-//          scaleStepWidth : 50,
-//          scaleStartValue : null,
-//          scaleLineColor : "#ccc",
-//          scaleLineWidth : 1,
-//          scaleShowLabels : true,
-//          scaleLabel : "",
-//          scaleFontFamily : "'Arial'",
-//          scaleFontSize : 11,
-//          scaleFontStyle : "normal",
-//          scaleFontColor : "#ccc",  
-//          scaleShowGridLines : false,
-//          scaleGridLineColor : "#ccc",
-//          scaleGridLineWidth : 1, 
-//          bezierCurve : false,
-          pointDot : false,
-//          pointDotRadius : 6,
-//          pointDotStrokeWidth : 0,
-//          datasetStroke : true,
-//          datasetStrokeWidth : 3,
-//          datasetFill : true,
-          animation : false,
-//          animationSteps : 60,
-//          animationEasing : "easeOutQuart",
-//          onAnimationComplete : null  
-        });
-      </script>
-
       <div class="row-fluid">
         <div class="span8">
-          <h2>最新情報</h2>
+          <h2>配信終了作品</h2>
           <ul class="videos">
-            : for $latest_videos -> $v {
-            <li>
-              <div class="info">
-                : if $v.episodes > 1 {
-                <span class="badge badge-info" title="シーズン数"><: $v.seasons :></span> <span class="badge badge-success" title="エピソード数"><: $v.episodes :></span>
-                : }
-                : if $v.is_new {
-                <span class="badge badge-important">新規追加</span>
-                : } else {
-                  : if $v.episodes == 0 {
-                <span class="badge badge-error">削除</span>
-                  : } else {
-                <span class="badge badge-warning">更新</span>
-                  : }
-                : }
-              </div>
-              <div class="date"><: $v.updated_at :></div>
-              <div class="title"><a href="video/<: $v.path :>.html"><: $v.title :></a></div>
-            </li>
-            : }
-          </ul>
-          <div id="all" class="marker">&nbsp;</div><p class="clear"></p>
-          <h2>公開中動画一覧(合計 <: $all_videos.size() :> タイトル)</h2>
-          <ul class="videos">
-            : for $all_videos -> $v {
-              <li <: if $v.index {'id="' ~ $v.index ~ '"'} :>>
-                <div class="info">
-                  : if $v.episodes > 1 {
-                  <span class="badge badge-info" title="シーズン数"><: $v.seasons :></span> <span class="badge badge-success" title="エピソード数"><: $v.episodes :></span>
-                  : }
+            : for $expired_videos -> $v {
+              <li>
+                <div class="">
+                  <: $v.expire :>
                 </div>
-                <div class="title"><a href="video/<: $v.path :>.html"><: $v.title :></a></div>
+                <div class="title">
+                  <: $v.title :>
+                </div>
+                : if $v.seasons {
+                  <div class="">
+                    <: $v.seasons :>
+                  </div>
+                : }
               </li>
             : }
           </ul>
-          <div id="links" class="marker">&nbsp;</div><p class="clear"></p>
-          <h2>リンク</h2>
-          <dl>
-            <dt><a href="http://www.hulu.jp/" target="_blank">hulu japan (http://www.hulu.jp/)</a></dt>
-            <dd>日本版hulu</dd>
-            <dt><a href="http://hulu.chips.jp/" target="_blank">hulu chips! (http://hulu.chips.jp/)</a></dt>
-            <dd>日本版Huluのまとめサイト</dd>
-            <dt><a href="https://twitter.com/Hulu_JPSupport" target="_blank">Twitter: Huluお客様サポートセンター (@Hulu_JPSupport)</a></dt>
-            <dd>フールージャパンの公式カスタマーサポートTwitter</dd>
-          </dl>
-          <div id="contact" class="marker">&nbsp;</div>
-          <h2>コンタクト</h2>
-          <p><a class="btn" href="mailto:smeghead7+hulu@gmail.com">メールで連絡する</a></p>
         </div>
         <div class="span4">
-          <div class="ranking">
-            <h2>アクセスランキング</h2>
-            <ul class="videos">
-              : for $ranking_videos -> $v {
-                <li>
-                  <div class="title"><a href="video/<: $v.path :>.html"><: $v.title :></a></div>
-                </li>
-              : }
-            </ul>
-          </div>
           <div class="ad">
             <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
             <!-- hulu-update.info-side -->
