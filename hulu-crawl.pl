@@ -249,8 +249,20 @@ sub expired_videos {
               and old.type || old.title || old.seasons || old.expire = new.type || new.title || new.seasons || new.expire
           )
     }, {Slice => {}}, $checked_date, $last_checked_date);
+    my $i = 0;
     for my $r (@$rows) {
-        $logger->debug('配信期限更新あり ' .  encode_utf8($r->{title}));
+        $logger->debug(encode_utf8('expired update. ' . decode_utf8($r->{title})));
+        if ($i > 10) {
+            my $message = 
+                '配信期限が更新されました。その他多数あります。詳しくは http://hulu-update.info/expired.html で確認して下さい。'; 
+            twitter_post($message);
+            last;
+        }
+        my $message = 
+            '配信期限が更新されました。[' . decode_utf8($r->{title}) . '] ' . decode_utf8($r->{seasons}) . ' ' . decode_utf8($r->{expire}) . ' http://hulu-update.info/expired.html' ;
+        twitter_post($message);
+
+        $i++;
     }
 
     print 'expired_videos.ok', "\n";
