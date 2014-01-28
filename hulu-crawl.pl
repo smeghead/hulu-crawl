@@ -184,7 +184,7 @@ sub date_format {
 }
 
 sub expired_videos {
-    my ($dbh) = @_;
+    my ($dbh, $checked_date, $last_checked_date) = @_;
  
     my @expires = ();
     foreach my $url (@expire_urls) {
@@ -202,13 +202,20 @@ sub expired_videos {
         my $res = $videos->scrape( URI->new($url) );
 
         # The result has the populated videos array
+        my $type;
         for my $video (@{$res->{videos}}) {
             my $title = $video->{cells}->[0];
             $title =~ s/^\s+//;
             $title =~ s/\s+$//;
-            next if $title eq 'テレビ番組';
             next if $title eq 'タイトル';
-            next if $title eq '映画';
+            if ($title eq 'テレビ番組') {
+                $type = $title;
+                next;
+            }
+            if ($title eq '映画') {
+                $type = $title;
+                next;
+            }
 
             my $column_count = scalar @{$video->{cells}};
             my $seasons = 0;
@@ -217,20 +224,33 @@ sub expired_videos {
             }
             my $expire = date_format($video->{cells}->[$column_count - 1]);
             print encode_utf8 $video->{cells}->[$column_count - 1], "\n";
-            push @expires, {title => $title, seasons => $seasons, expire => $expire};
+            push @expires, {
+                type => $type,
+                title => $title,
+                seasons => $seasons,
+                expire => $expire,
+            };
         }
     }
 
     my $sth = $dbh->prepare(q{
-        delete from expires
-    });
-    $sth->execute;
-
-    $sth = $dbh->prepare(q{
-        insert into expires (title, seasons, expire, created_at, updated_at) values (?, ?, ?, datetime('now', 'localtime'), datetime('now', 'localtime'))
+        insert into expires (checked_date, type, title, seasons, expire, created_at, updated_at) values (?, ?, ?, ?, ?, datetime('now', 'localtime'), datetime('now', 'localtime'))
     });
     foreach my $v (@expires) {
-        $sth->execute($v->{title}, $v->{seasons}, $v->{expire});
+        $sth->execute($checked_date, $v->{type}, $v->{title}, $v->{seasons}, $v->{expire});
+    }
+
+    my $rows = $dbh->selectall_arrayref(q{
+        select * from expires as new
+        where new.checked_date = ?
+          and not exists (
+            select * from expires as old
+            where old.checked_date = ?
+              and old.type || old.title || old.seasons || old.expire = new.type || new.title || new.seasons || new.expire
+          )
+    }, {Slice => {}}, $checked_date, $last_checked_date);
+    for my $r (@$rows) {
+        $logger->debug('配信期限更新あり ' .  encode_utf8($r->{title}));
     }
 
     print 'expired_videos.ok', "\n";
@@ -366,12 +386,12 @@ try {
             $checked_date,
         ) or die 'failed to insert. id:' . $video_id;
     }
-    # check deleted videos
+    #check deleted videos
     check_deleted_videos($dbh, $last_checked_date, $checked_date);
 
     record_video_count($dbh);
 
-    expired_videos($dbh);
+    expired_videos($dbh, $checked_date, $last_checked_date);
 
     $dbh->disconnect;
 } catch {
@@ -387,5 +407,5 @@ create table updates (id integer primary key, video_id integer not null, is_new 
 create table published_videos (id integer primary key, checked_date varchar, video_id integer, created_at datetime, updated_at datetime);
 create index published_videos_checked_date on published_videos(checked_date);
 create table video_counts (id integer primary key, date varchar not null, count integer);
-create table expires (id integer primary key, title varchar, seasons integer, expire varchar, created_at datetime, updated_at datetime);
+create table expires (id integer primary key, checked_date varchar, type varchar, title varchar, seasons integer, expire varchar, created_at datetime, updated_at datetime);
 

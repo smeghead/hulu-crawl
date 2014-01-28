@@ -43,6 +43,14 @@ sub create_static_files {
     }
 }
 
+sub last_checked_date {
+    my ($dbh) = @_;
+    my $rows = $dbh->do('');
+    my $sth = $dbh->prepare(q{select max(checked_date) as last_checked_date from published_videos});
+    $sth->execute or die 'failed to select. url';
+    return $sth->fetchrow_hashref->{last_checked_date};
+}
+
 sub create_rss {
     my ($latest_videos) = @_;
 
@@ -267,9 +275,10 @@ try {
     # expired_videos
     my $sth = $dbh->prepare(q{
         select * from expires
+        where checked_date = ?
         order by expire
     });
-    $sth->execute;
+    $sth->execute(last_checked_date($dbh));
 
     my @expired_videos = ();
     while (my $row = $sth->fetchrow_hashref()){
