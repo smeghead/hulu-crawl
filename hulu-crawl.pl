@@ -99,6 +99,7 @@ sub twitter_post {
         consumer_secret => $config->param('consumer_secret'),
         access_token => $config->param('access_token'),
         access_token_secret => $config->param('access_token_secret'),
+        ssl => 1,
     );
 
     if (defined $opts{p} && $opts{p} eq 'true') {
