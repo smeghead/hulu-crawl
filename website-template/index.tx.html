@@ -67,7 +67,7 @@
           <div class="nav-collapse collapse">
             <ul class="nav">
               <li class="active"><a href="/">Home</a></li>
-              <li><a href="/#all">公開中動画一覧</a></li>
+              <li><a href="/list.html">公開中動画一覧</a></li>
               <li><a href="/search.html">動画検索</a></li>
               <li><a href="/expired.html">配信期限</a></li>
               <li><a href="/#links">リンク</a></li>
@@ -215,20 +215,6 @@
               <div class="date"><: $v.updated_at :></div>
               <div class="title"><a href="video/<: $v.path :>.html"><: $v.title :></a></div>
             </li>
-            : }
-          </ul>
-          <div id="all" class="marker">&nbsp;</div><p class="clear"></p>
-          <h2>公開中動画一覧(合計 <: $all_videos.size() :> タイトル)</h2>
-          <ul class="videos">
-            : for $all_videos -> $v {
-              <li <: if $v.index {'id="' ~ $v.index ~ '"'} :>>
-                <div class="info">
-                  : if $v.episodes > 1 {
-                  <span class="badge badge-info" title="シーズン数"><: $v.seasons :></span> <span class="badge badge-success" title="エピソード数"><: $v.episodes :></span>
-                  : }
-                </div>
-                <div class="title"><a href="video/<: $v.path :>.html"><: $v.title :></a></div>
-              </li>
             : }
           </ul>
           <div id="links" class="marker">&nbsp;</div><p class="clear"></p>

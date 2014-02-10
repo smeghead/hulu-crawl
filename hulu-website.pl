@@ -83,7 +83,7 @@ sub create_rss {
 }
 
 sub create_index_page {
-    my ($latest_videos, $all_videos, $counts, $ranking_videos) = @_;
+    my ($latest_videos, $counts, $ranking_videos) = @_;
 
     my $tx = Text::Xslate->new(
         path => $FindBin::Bin,
@@ -92,13 +92,33 @@ sub create_index_page {
 
     my $data = {
         latest_videos => $latest_videos,
-        all_videos => $all_videos,
         counts => $counts,
         ranking_videos => $ranking_videos,
     };
     mkdir $FindBin::Bin . '/website';
     my $content = $tx->render('website-template/index.tx.html', $data);
     my $out_file = $FindBin::Bin . '/website/index.html';
+    open my $out_fh, ">", $out_file
+        or die "Cannot open $out_file for write: $!";
+    print $out_fh encode_utf8($content);
+    close $out_fh;
+}
+
+sub create_list_page {
+    my ($all_videos, $ranking_videos) = @_;
+
+    my $tx = Text::Xslate->new(
+        path => $FindBin::Bin,
+        module => ['Text::Xslate::Bridge::Star'],
+    );
+
+    my $data = {
+        all_videos => $all_videos,
+        ranking_videos => $ranking_videos,
+    };
+    mkdir $FindBin::Bin . '/website';
+    my $content = $tx->render('website-template/list.tx.html', $data);
+    my $out_file = $FindBin::Bin . '/website/list.html';
     open my $out_fh, ">", $out_file
         or die "Cannot open $out_file for write: $!";
     print $out_fh encode_utf8($content);
@@ -292,7 +312,6 @@ try {
         inner join videos as v on v.id = u.video_id
         where u.created_at > date('now', '-3 days', 'localtime')
         order by u.created_at desc
-        limit 100
     });
     $sth->execute;
 
@@ -368,7 +387,8 @@ try {
     create_static_files;
 
     create_rss(\@latest_videos);
-    create_index_page(\@latest_videos, \@all_videos, \@counts, \@ranking_videos);
+    create_index_page(\@latest_videos, \@counts, \@ranking_videos);
+    create_list_page(\@all_videos, \@ranking_videos);
     create_expired_page(\@expired_videos);
     create_search_page;
 
