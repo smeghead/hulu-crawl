@@ -187,67 +187,60 @@ sub date_format {
 sub expired_videos {
     my ($dbh, $checked_date, $last_checked_date) = @_;
  
+    my $nt = Net::Twitter->new(
+        traits   => [qw/OAuth API::RESTv1_1/],
+        consumer_key => $config->param('consumer_key'),
+        consumer_secret => $config->param('consumer_secret'),
+        access_token => $config->param('access_token'),
+        access_token_secret => $config->param('access_token_secret'),
+        ssl => 1,
+    );
+
+    my $videos = $nt->search('#hulu_配信期限');
     my @expires = ();
-    foreach my $url (@expire_urls) {
-        print 'url:', $url, "\n";
-        my $videos = scraper {
-          # Parse all LIs with the class "status", store them into a resulting
-          # array 'videos'.  We embed another scraper for each tweet.
-          process "div.support-article-content table tr", "videos[]" => scraper {
-              # And, in that array, pull in the elementy with the class
-              # "entry-content", "entry-date" and the link
-              process "td", 'cells[]' => 'TEXT';
-          };
+    foreach my $v (@{$videos->{statuses}}) {
+        $logger->debug(encode_utf8($v->{text}));
+        my $text = $v->{text};
+        my ($title, $seasons, $url, $month, $day) = $text =~ m{「(.*)」(.*)?をHuluで配信しております。(.*) 配信期限は(\d+)月(\d+)日の23時までとなります 。};
+
+        next unless $title;
+
+        $logger->debug(encode_utf8($title));
+        my $now = DateTime->now();
+        $logger->debug(encode_utf8($now->strftime('%Y-%m-%d')));
+        my $date = sprintf('%04d-%02d-%02d',
+            int($month) < $now->month() && int($day) < $now->day() ? $now->year() + 1 : $now->year(),
+            $month,
+            $day);
+        $logger->debug(encode_utf8($date));
+        push @expires, {
+            title => $title,
+            seasons => $seasons,
+            expire => $date,
+            url => $url,
         };
 
-        my $res = $videos->scrape( URI->new($url) );
-
-        # The result has the populated videos array
-        my $type;
-        for my $video (@{$res->{videos}}) {
-            my $title = $video->{cells}->[0];
-            $title =~ s/^\s+//;
-            $title =~ s/\s+$//;
-            next if $title eq 'タイトル';
-            if ($title eq 'テレビ番組') {
-                $type = $title;
-                next;
-            }
-            if ($title eq '映画') {
-                $type = $title;
-                next;
-            }
-
-            my $column_count = scalar @{$video->{cells}};
-            my $seasons = 0;
-            if ($column_count == 3) {
-                $seasons = $video->{cells}->[1];
-            }
-            my $expire = date_format($video->{cells}->[$column_count - 1]);
-            print encode_utf8 $video->{cells}->[$column_count - 1], "\n";
-            push @expires, {
-                type => $type,
-                title => $title,
-                seasons => $seasons,
-                expire => $expire,
-            };
-        }
     }
+
+    my $sth_delete = $dbh->prepare(q{
+        delete from expires where checked_date = ? and title = ? and seasons = ?
+    });
 
     my $sth = $dbh->prepare(q{
-        insert into expires (checked_date, type, title, seasons, expire, created_at, updated_at) values (?, ?, ?, ?, ?, datetime('now', 'localtime'), datetime('now', 'localtime'))
+        insert into expires (checked_date, title, seasons, expire, url, created_at, updated_at) values (?, ?, ?, ?, ?, datetime('now', 'localtime'), datetime('now', 'localtime'))
     });
     foreach my $v (@expires) {
-        $sth->execute($checked_date, $v->{type}, $v->{title}, $v->{seasons}, $v->{expire});
+        $sth_delete->execute($checked_date, $v->{title}, $v->{seasons});
+        $sth->execute($checked_date, $v->{title}, $v->{seasons}, $v->{expire}, $v->{url});
     }
-
+    $logger->debug('checked_date:' . $checked_date . ' last_checked_date:' . $last_checked_date);
     my $rows = $dbh->selectall_arrayref(q{
         select * from expires as new
         where new.checked_date = ?
           and not exists (
             select * from expires as old
             where old.checked_date = ?
-              and old.type || old.title || old.seasons || old.expire = new.type || new.title || new.seasons || new.expire
+              and old.title || old.seasons || old.expire = new.title || new.seasons || new.expire
           )
     }, {Slice => {}}, $checked_date, $last_checked_date);
     my $i = 0;
@@ -420,5 +413,6 @@ create table updates (id integer primary key, video_id integer not null, is_new 
 create table published_videos (id integer primary key, checked_date varchar, video_id integer, created_at datetime, updated_at datetime);
 create index published_videos_checked_date on published_videos(checked_date);
 create table video_counts (id integer primary key, date varchar not null, count integer);
-create table expires (id integer primary key, checked_date varchar, type varchar, title varchar, seasons integer, expire varchar, created_at datetime, updated_at datetime);
+create table expires (id integer primary key, checked_date varchar, title varchar,
+seasons integer, expire varchar, url varchar, created_at datetime, updated_at datetime);
 
