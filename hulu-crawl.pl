@@ -196,11 +196,19 @@ sub expired_videos {
         ssl => 1,
     );
 
-    my $videos = $nt->search('#hulu_配信期限');
+    my $videos = $nt->search({
+        q => '#hulu_配信期限',
+        locale => 'ja',
+        count => 100,
+        result_type => 'mixed',
+    });
     my @expires = ();
     foreach my $v (@{$videos->{statuses}}) {
         $logger->debug(encode_utf8($v->{text}));
+        next unless $v->{user}->{screen_name} eq 'Hulu_JPSupport';
+
         my $text = $v->{text};
+
         my ($title, $seasons, $url, $month, $day) = $text =~ m{「(.*)」(.*)?をHuluで配信しております。(.*) 配信期限は(\d+)月(\d+)日の23時までとなります 。};
 
         next unless $title;

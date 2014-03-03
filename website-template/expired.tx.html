@@ -105,7 +105,7 @@
         hulu.jpの配信期限のあるタイトルを纏めています。
       </p>
       <p>
-        ソース: <a href="http://www.hulu.jp/support/article/26088575" target="_blank">hulu.jpのサポートページの配信終了作品ページ</a>
+        ソース: <a href="http://twilog.org/Hulu_JPSupport/hashtags-hulu_%E9%85%8D%E4%BF%A1%E6%9C%9F%E9%99%90" target="_blank">Huluお客様サポートセンターのtweet</a>
       </p>
 
       <div class="ad">
@@ -130,7 +130,11 @@
                   <: $v.expire :>
                 </div>
                 <div class="title">
-                  <: $v.title :>
+                  : if $v.url {
+                    <a href="<: $v.url :>" target="_blank"><: $v.title :></a>
+                  : } else {
+                    <: $v.title :>
+                  : }
                 </div>
                 : if $v.seasons {
                   <div class="">

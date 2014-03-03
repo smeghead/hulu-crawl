@@ -294,11 +294,13 @@ try {
 
     # expired_videos
     my $sth = $dbh->prepare(q{
-        select * from expires
-        where checked_date = ?
+        select max(id), title, seasons, expire, url
+        from expires
+        where expire > current_timestamp
+        group by title, seasons, expire, url
         order by expire
     });
-    $sth->execute(last_checked_date($dbh));
+    $sth->execute();
 
     my @expired_videos = ();
     while (my $row = $sth->fetchrow_hashref()){
