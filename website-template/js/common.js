@@ -13,4 +13,24 @@ $(function(){
   $('.back-or-top').click(function(){
     return try_back('/');
   });
+
+  //search video list.
+  $(function(){
+    $('#search').keyup(function(){
+      var q = $(this).val().toLowerCase();
+      if (!q) {
+        $('ul.videos li').show();
+        return;
+      }
+
+      $('ul.videos li').each(function(){
+        var li = $(this);
+        if (li.find('div.title').text().toLowerCase().indexOf(q) > -1) {
+          li.show();
+        } else {
+          li.hide();
+        }
+      });
+    });
+  });
 });

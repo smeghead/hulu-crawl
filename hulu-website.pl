@@ -12,6 +12,7 @@ use File::Copy::Recursive qw(rcopy);
 use Text::MediawikiFormat qw(wikiformat);
 use XML::FeedPP;
 use DateTime::Format::W3CDTF;
+use DateTime::Format::Strptime;
 use Log::Log4perl;
 
 my $logfile = $FindBin::Bin . '/hulu-website.log';
@@ -153,6 +154,20 @@ sub create_search_page {
     mkdir $FindBin::Bin . '/website';
     my $content = $tx->render('website-template/search.tx.html', $data);
     my $out_file = $FindBin::Bin . '/website/search.html';
+    open my $out_fh, ">", $out_file
+        or die "Cannot open $out_file for write: $!";
+    print $out_fh encode_utf8($content);
+    close $out_fh;
+}
+
+sub create_recommend_page {
+    my $tx = Text::Xslate->new(path => $FindBin::Bin);
+
+    my $data = {
+    };
+    mkdir $FindBin::Bin . '/website';
+    my $content = $tx->render('website-template/recommend.tx.html', $data);
+    my $out_file = $FindBin::Bin . '/website/recommend.html';
     open my $out_fh, ">", $out_file
         or die "Cannot open $out_file for write: $!";
     print $out_fh encode_utf8($content);
@@ -303,7 +318,13 @@ try {
     $sth->execute();
 
     my @expired_videos = ();
+    my $now = DateTime->now();
+    my $parser = DateTime::Format::Strptime->new(pattern=>"%Y-%m-%d");
     while (my $row = $sth->fetchrow_hashref()){
+        my $d = $parser->parse_datetime($row->{expire});
+        my $duration = $d - $now;
+        my ($months, $days) = $duration->in_units('months', 'days');
+        $row->{days} = $months * 30 + $days + 1;
         push @expired_videos, $row;
     }
     die $sth->errstr if $sth->err;
@@ -393,6 +414,7 @@ try {
     create_list_page(\@all_videos, \@ranking_videos);
     create_expired_page(\@expired_videos);
     create_search_page;
+    create_recommend_page;
 
     create_video_pages($dbh, \@all_videos);
 

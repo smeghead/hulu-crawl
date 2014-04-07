@@ -411,6 +411,7 @@ try {
 } catch {
     $logger->error_die("caught error: $_");
 };
+system($FindBin::Bin . '/hulu-website.pl');
 $logger->info('finished cleanly.');
 
 __END__

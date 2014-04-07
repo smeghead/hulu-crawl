@@ -106,14 +106,12 @@
         huluの動画に変更があるかどうかを1時間おきにチェックして、変更があれば更新されます。
         最新情報に掲載される情報は、twitter の <a href="https://twitter.com/hulu_jp_bot" target="_blank">@hulu_jp_bot</a> と同じ情報です。
       </p>
-      <div class="alert alert-success">
-        配信期限のあるタイトルを纏めるページを作成しました。
-        <a class="btn btn-primary" href="/expired.html">配信期限のあるタイトル一覧</a>
-      </div>
-      <div class="alert alert-success">
-        公開中の動画一覧を別ページに移動しました。
-        <a class="btn btn-primary" href="/list.html">公開中の動画一覧</a>
-      </div>
+      <a class="btn btn-primary" href="/expired.html">配信期限のあるタイトル一覧</a>
+      <a class="btn btn-primary" href="/recommend.html">お勧めタイトル</a>
+      <ul class="attension">
+        <li>※ ドラマのエピソード数は、試聴できるタイトルも含まれた数字であるため、試聴できるエピソードが追加された場合にも新着通知として通知されます。</li>
+        <li>※ ドラマの更新は、シーズン数とエピソード数に変化があった場合に新着通知されます。各月で公開されるシーズンが異なるドラマは、通知されない場合があります。</li>
+      </ul>
 
       <div class="ad">
         <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
@@ -276,6 +274,7 @@
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <script src="js/bootstrap.js"></script> 
 <!--     <script src="js/bootstrap-transition.js"></script> -->
 <!--     <script src="js/bootstrap-alert.js"></script> -->
 <!--     <script src="js/bootstrap-modal.js"></script> -->
