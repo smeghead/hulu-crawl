@@ -146,14 +146,15 @@ sub create_expired_page {
     close $out_fh;
 }
 
-sub create_search_page {
+sub create_static_page {
+    my ($name) = @_;
     my $tx = Text::Xslate->new(path => $FindBin::Bin);
 
     my $data = {
     };
     mkdir $FindBin::Bin . '/website';
-    my $content = $tx->render('website-template/search.tx.html', $data);
-    my $out_file = $FindBin::Bin . '/website/search.html';
+    my $content = $tx->render("website-template/$name.tx.html", $data);
+    my $out_file = $FindBin::Bin . "/website/$name.html";
     open my $out_fh, ">", $out_file
         or die "Cannot open $out_file for write: $!";
     print $out_fh encode_utf8($content);
@@ -413,8 +414,9 @@ try {
     create_index_page(\@latest_videos, \@counts, \@ranking_videos);
     create_list_page(\@all_videos, \@ranking_videos);
     create_expired_page(\@expired_videos);
-    create_search_page;
-    create_recommend_page;
+    create_static_page('search');;
+    create_static_page('recommend');;
+    create_static_page('about');;
 
     create_video_pages($dbh, \@all_videos);
 
