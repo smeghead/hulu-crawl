@@ -82,3 +82,8 @@ div.wikipedia table td {
 .attension {
 	list-style: none;
 }
+.fb-like-containar {
+	height: 21px !important;
+	overflow: hidden;
+}
+

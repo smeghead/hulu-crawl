@@ -235,6 +235,7 @@ sub create_video_pages {
     # all_videos
     my $sth = $dbh->prepare(q{
         select v.* from videos as v
+        where v.updated_at > date('now' , '-1 days' )
         order by v.title
     });
     $sth->execute;
@@ -418,7 +419,7 @@ try {
     create_static_page('recommend');;
     create_static_page('about');;
 
-    create_video_pages($dbh, \@all_videos);
+    create_video_pages($dbh);
 
     $dbh->disconnect;
 } catch {
