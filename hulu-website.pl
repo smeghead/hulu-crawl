@@ -13,6 +13,7 @@ use Text::MediawikiFormat qw(wikiformat);
 use XML::FeedPP;
 use DateTime::Format::W3CDTF;
 use DateTime::Format::Strptime;
+use URI::Escape;
 use Log::Log4perl;
 
 my $logfile = $FindBin::Bin . '/hulu-website.log';
@@ -392,8 +393,10 @@ try {
     my @ranking_videos = ();
     foreach my $url (@lanking_urls) {
         chomp $url;
+        $url = uri_unescape($url);
         $url =~ s/\.html//;
         $url =~ s/\/video//;
+        $url =~ s/\t.*//;
         print 'url:', $url, "\n";
         $sth = $dbh->prepare(q{
             select v.* from videos as v
