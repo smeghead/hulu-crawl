@@ -132,7 +132,7 @@
       </div>
 
       <script src="js/Chart.js"></script>
-      <div id="chart" class="hidden-phone">
+      <div id="chart">
         <canvas id="myChart" width="900" height="200"></canvas>
         <div class="caption">
           公開タイトル数の遷移
@@ -203,6 +203,21 @@
       <div class="row-fluid">
         <div class="span8">
           <h2>最新情報</h2>
+          <div class="update-feel">
+            : for $latest_videos -> $v {
+              : if $v.is_new {
+                <div class="feel feel-new" title="<: $v.title :>"></div>
+              : } else {
+                : if $v.episodes == 0 {
+                  <div class="feel feel-delete" title="<: $v.title :>"></div>
+                : } else {
+                  <div class="feel feel-modify" title="<: $v.title :>"></div>
+                : }
+              : }
+            : }
+            <div class="feel-count"><: $latest_videos.size() :>件の新着情報があります</div>
+            <p class="clearfix"></p>
+          </div>
           <ul class="videos">
             : for $latest_videos -> $v {
             <li>

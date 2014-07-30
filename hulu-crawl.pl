@@ -205,19 +205,22 @@ sub expired_videos {
     my @expires = ();
     foreach my $v (@{$videos->{statuses}}) {
         $logger->debug(encode_utf8($v->{text}));
+        $logger->debug(encode_utf8($v->{user}->{screen_name}));
         next unless $v->{user}->{screen_name} eq 'Hulu_JPSupport';
 
         my $text = $v->{text};
 
-        my ($title, $seasons, $url, $month, $day) = $text =~ m{「(.*)」(.*)?をHuluで配信しております。(.*) 配信期限は(\d+)月(\d+)日の23時までとなります 。};
+        $logger->debug(encode_utf8($text));
+        my ($title, $seasons, $url, $year, $month, $day) = $text =~ m{「(.*)」(.*)?をHuluで配信しております。(.*) 配信.*は(\d+)年(\d+)月(\d+)日の23時までとなります 。};
 
+        $logger->debug(encode_utf8($title));
         next unless $title;
 
         $logger->debug(encode_utf8($title));
         my $now = DateTime->now();
         $logger->debug(encode_utf8($now->strftime('%Y-%m-%d')));
         my $date = sprintf('%04d-%02d-%02d',
-            int($month) < $now->month() && int($day) < $now->day() ? $now->year() + 1 : $now->year(),
+            $year,
             $month,
             $day);
         $logger->debug(encode_utf8($date));

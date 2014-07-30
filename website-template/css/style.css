@@ -69,6 +69,7 @@ div.wikipedia table td {
 #chart {
 	text-align: center;
 	position: relative;
+	overflow: auto;
 }
 #chart .caption {
 	position: absolute;
@@ -87,3 +88,23 @@ div.wikipedia table td {
 	overflow: hidden;
 }
 
+.update-feel {
+}
+.update-feel .feel {
+	float: left;
+	width: 20px;
+	height: 20px;
+}
+.update-feel .feel-new {
+	background-color: red;
+}
+.update-feel .feel-delete {
+	background-color: gray;
+}
+.update-feel .feel-modify {
+	background-color: orange;
+}
+.update-feel .feel-count {
+	height: 20px;
+	font-size: 9pt;
+}
