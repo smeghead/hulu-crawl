@@ -39,19 +39,6 @@ my $access_token = `$get_token_command`;
 my $api_url = 'http://www.hulu.jp/mozart/v1.h2o/<apiname>?caption=&country=&decade=&exclude_hulu_content=1&genre=&language=&sort=popular_all_time&_language=ja&_region=jp&items_per_page=32&position=<position>&_user_pgid=24&_content_pgid=24&_device_id=1&region=jp&locale=ja&language=ja&access_token=' . $access_token;
 # http://www.hulu.jp/mozart/v1.h2o/shows?caption=&country=&decade=&exclude_hulu_content=1&genre=&language=&sort=popular_all_time&_language=ja&_region=jp&items_per_page=32&position=0&_user_pgid=24&_content_pgid=24&_device_id=1&region=jp&locale=ja&language=ja&access_token=u3hqs8d3aJqRiJZYU5nrD7CQJ58%3DGOzf8jSX05783024639399a26480b69cb945a5e5e24f6d5f35514b01c1cb3e812225d701bdcf37da422873cc1343140751481749
 
-my @expire_urls = qw{
-    http://www.hulu.jp/support/article/26284950
-    http://www.hulu.jp/support/article/25746809
-    http://www.hulu.jp/support/article/25746829
-    http://www.hulu.jp/support/article/26284970
-    http://www.hulu.jp/support/article/25746859
-    http://www.hulu.jp/support/article/26284990
-    http://www.hulu.jp/support/article/25746869
-    http://www.hulu.jp/support/article/25829844
-    http://www.hulu.jp/support/article/25829854
-    http://www.hulu.jp/support/article/25829864
-};
-
 my %opts = ();
 getopts('p:', \%opts);
 
@@ -68,6 +55,7 @@ sub parse_videos {
         push @videos, +{
             url => 'http://www2.hulu.jp/' . $show->{canonical_name},
             title => $show->{name},
+            description => $show->{description},
             seasons => $show->{seasons_count} || 1,
             episodes => $show->{videos_count} || 1,
         };
@@ -93,6 +81,8 @@ sub twitter_post {
 
     $message .= ' http://hulu-update.info/';
     $logger->info(encode_utf8($message));
+    # http://gonshi.hatenablog.com/entry/2014/02/01/065003
+    $ENV{'PERL_LWP_SSL_VERIFY_HOSTNAME'} = 0;
     my $nt = Net::Twitter->new(
         traits   => [qw/OAuth API::RESTv1_1/],
         consumer_key => $config->param('consumer_key'),
@@ -366,10 +356,11 @@ try {
                     $v->{episodes},
                 ) or die 'failed to insert. url:' . $v->{title};
             }
-            $sth = $dbh->prepare(q{update videos set seasons = ?, episodes = ?, updated_at = datetime('now', 'localtime') where id = ?});
+            $sth = $dbh->prepare(q{update videos set seasons = ?, episodes = ?, description = ?, updated_at = datetime('now', 'localtime') where id = ?});
             $sth->execute(
                 $v->{seasons},
                 $v->{episodes},
+                $v->{description},
                 $old->{id},
             ) or die 'failed to update. url:' . $v->{title};
             $video_id = $old->{id};
@@ -380,12 +371,13 @@ try {
             }
             my $message = '[' . $v->{title} . '] が追加されました。' . $seasons_info . ' ' . $v->{url};
             twitter_post($message);
-            $sth = $dbh->prepare(q{insert into videos (url, title, seasons, episodes, created_at, updated_at) values (?, ?, ?, ?, datetime('now', 'localtime'), datetime('now', 'localtime'))});
+            $sth = $dbh->prepare(q{insert into videos (url, title, seasons, episodes, description, created_at, updated_at) values (?, ?, ?, ?, ?, datetime('now', 'localtime'), datetime('now', 'localtime'))});
             $sth->execute(
                 $v->{url},
                 $v->{title},
                 $v->{seasons},
                 $v->{episodes},
+                $v->{description},
             ) or die 'failed to insert. url:' . $v->{title};
             my $last_insert_id = $dbh->func('last_insert_rowid');
             print 'new id:' . $last_insert_id, "\n";
@@ -419,7 +411,7 @@ $logger->info('finished cleanly.');
 
 __END__
 
-create table videos (id integer primary key, url varchar, title varchar, seasons integer, episodes integer, created_at datetime, updated_at datetime);
+create table videos (id integer primary key, url varchar, title varchar, seasons integer, episodes integer, description varchar, created_at datetime, updated_at datetime);
 create index videos_url on videos(url);
 create table updates (id integer primary key, video_id integer not null, is_new integer not null, seasons integer, episodes integer, created_at datetime, updated_at datetime);
 create table published_videos (id integer primary key, checked_date varchar, video_id integer, created_at datetime, updated_at datetime);
