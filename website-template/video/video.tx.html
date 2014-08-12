@@ -105,10 +105,15 @@
       <h1><: $video.title :></h1>
 
       <p>
+      : if $video.description {
         <: $video.description :>
+      : } else {
+        動画の説明文が取得できませんでした。
+      : }
       </p>
 
       <div class="ad">
+        <h3 class="ad-title">スポンサード リンク</h3>
         <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
         <!-- hulu-wide-responsive -->
         <ins class="adsbygoogle"
@@ -164,6 +169,7 @@
         </div>
         <div class="span4">
           <div class="ad">
+            <h3 class="ad-title">スポンサード リンク</h3>
             <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
             <!-- hulu-update.info-side -->
             <ins class="adsbygoogle"
@@ -174,6 +180,7 @@
             (adsbygoogle = window.adsbygoogle || []).push({});
             </script>
 
+            <h3 class="ad-title">スポンサード リンク</h3>
             <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
             <!-- hulu-update.info-side-high -->
             <ins class="adsbygoogle"

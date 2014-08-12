@@ -10,6 +10,13 @@ div.ad {
         text-align: center;
 	margin-bottom: 5px;
 }
+div.ad h3.ad-title {
+	text-align: left;
+	font-size: 9pt;
+	margin-bottom: 0px;
+	padding: 5px;
+	line-height: 20px;
+}
 
 div.marker {
 	margin-top: -40px;
