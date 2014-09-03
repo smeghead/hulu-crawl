@@ -9,7 +9,6 @@ use Try::Tiny;
 use Getopt::Std;
 use Text::Xslate;
 use File::Copy::Recursive qw(rcopy);
-use Text::MediawikiFormat qw(wikiformat);
 use XML::FeedPP;
 use DateTime::Format::W3CDTF;
 use DateTime::Format::Strptime;
@@ -273,28 +272,9 @@ sub create_video_pages {
         }
         die $sth->errstr if $sth->err;
 
-        # wikipedia
-        $sth = $dbh->prepare(q{
-            select * from wikipedias
-            where video_id = ?
-        });
-        $sth->execute($video->{id});
-
-        my $entry = $sth->fetchrow_hashref;
-        die $sth->errstr if $sth->err;
-
-        if ($entry && $entry->{content}) {
-            $entry->{content} = decode_utf8($entry->{content});
-            $entry->{content} =~ s/<\/?ref[^>]*>//msg;
-            $entry->{content} =~ s/\{\{.*?\}\}//msg;
-            $entry->{content} =~ s/(\{\|.*?\|\})/table_format($1)/emsg; # TODO: Text::MediawikiFormat がテーブルに対応してないため、現時点の対応としては、削除している。
-            $entry->{content} = wikiformat($entry->{content});
-        };
-
         my $data = {
             video => $video,
             histories => \@histories,
-            entry => $entry,
         };
         mkdir $FindBin::Bin . '/website/video';
         my $content = $tx->render('website-template/video/video.tx.html', $data);
