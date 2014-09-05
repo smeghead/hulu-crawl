@@ -103,8 +103,10 @@
         <p class="clear"></p>
       </div>
 
+      <h1>公開中動画一覧(合計 <: $all_videos.size() :> タイトル)</h1>
       <p>
         Huluで公開されている動画一覧です。
+        1ページに表示しているので、ページ内テキスト検索で、目的の映画・ドラマがHuluで公開中であるかを簡単に調べることができます。
       </p>
 
       <div class="ad">
@@ -124,7 +126,6 @@
       <div class="row-fluid">
         <div class="span8">
           <div id="all" class="marker">&nbsp;</div><p class="clear"></p>
-          <h2>公開中動画一覧(合計 <: $all_videos.size() :> タイトル)</h2>
           <input id="search" type="text" placeholder="絞り込み" />
           <ul class="videos">
             : for $all_videos -> $v {
