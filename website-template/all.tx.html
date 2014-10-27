@@ -2,10 +2,10 @@
 <html lang="ja">
   <head>
     <meta charset="utf-8">
-    <title>配信期限のあるタイトル hulu.jp 更新情報</title>
+    <title>hulu.jp 更新情報</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="keyword" content="hulu 配信予定, hulu 予定, hulu 更新予定, hulu 放送予定, hulu配信終了予定映画">
-    <meta name="description" content="配信期限のあるタイトルの情報です。 hulu.jpの更新情報を纏めています。">
+    <meta name="keyword" content="hulu.jp, hulu.jp更新情報, 動画, 映画">
+    <meta name="description" content="hulu.jpの更新情報を纏めています。">
     <meta name="author" content="smeghead">
 
     <!-- Le styles -->
@@ -70,7 +70,7 @@
               <li><a href="/list.html">公開中動画一覧</a></li>
               <li><a href="/search.html">動画検索</a></li>
               <li><a href="/recommend.html">お勧め</a></li>
-              <li class="active"><a href="/expired.html">配信期限</a></li>
+              <li><a href="/expired.html">配信期限</a></li>
               <li><a href="/about.html">このサイトについて</a></li>
             </ul>
           </div><!--/.nav-collapse -->
@@ -103,14 +103,10 @@
         <p class="clear"></p>
       </div>
 
-      <h1>配信終了作品</h1>
+      <h1>全ての動画一覧(合計 <: $all_videos.size() :> タイトル)</h1>
       <p>
-        hulu.jpの配信期限のあるタイトルを纏めています。
-        あとで見ようとしていたドラマが、知らないうちに配信期限が来てしまって見逃して悲しい思いをすることも結構あります。
-        更新情報と合わせて配信期限の更新も、twitter の <a href="https://twitter.com/hulu_jp_bot" target="_blank">@hulu_jp_bot</a> で流してますので、フォローをお勧めします。
-      </p>
-      <p>
-        ソース: <a href="http://twilog.org/Hulu_JPSupport/hashtags-hulu_%E9%85%8D%E4%BF%A1%E6%9C%9F%E9%99%90" target="_blank">Huluお客様サポートセンターのtweet</a>
+        既に公開されていない動画も含む動画一覧です。
+        ただし、このサイトが始まるより前に公開されていた動画は含まれません。
       </p>
 
       <div class="ad">
@@ -129,34 +125,32 @@
 
       <div class="row-fluid">
         <div class="span8">
+          <div id="all" class="marker">&nbsp;</div><p class="clear"></p>
+          <input id="search" type="text" placeholder="絞り込み" />
           <ul class="videos">
-            : for $expired_videos -> $v {
-              <li>
-                <div class="">
-                  <: $v.expire :>
-                  : if $v.days < 8 {
-                    <span class="badge badge-important">あと<: $v.days :>日</span>
-                  : } else {
-                    <span class="badge">あと<: $v.days :>日</span>
+            : for $all_videos -> $v {
+              <li <: if $v.index {'id="' ~ $v.index ~ '"'} :>>
+                <div class="info">
+                  : if $v.episodes > 1 {
+                  <span class="badge badge-info" title="シーズン数"><: $v.seasons :></span> <span class="badge badge-success" title="エピソード数"><: $v.episodes :></span>
                   : }
                 </div>
-                <div class="title">
-                  : if $v.url {
-                    <a href="<: $v.url :>" target="_blank"><: $v.title :></a>
-                  : } else {
-                    <: $v.title :>
-                  : }
-                </div>
-                : if $v.seasons {
-                  <div class="">
-                    <: $v.seasons :>
-                  </div>
-                : }
+                <div class="title"><a href="video/<: $v.path :>.html"><: $v.title :></a></div>
               </li>
             : }
           </ul>
         </div>
         <div class="span4">
+          <div class="ranking">
+            <h2>アクセスランキング</h2>
+            <ul class="videos">
+              : for $ranking_videos -> $v {
+                <li>
+                  <div class="title"><a href="video/<: $v.path :>.html"><: $v.title :></a></div>
+                </li>
+              : }
+            </ul>
+          </div>
           <div class="ad">
             <h3 class="ad-title">スポンサード リンク</h3>
             <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>

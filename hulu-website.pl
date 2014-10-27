@@ -286,6 +286,40 @@ sub create_video_pages {
     }
 }
 
+sub create_all_video_list_pages {
+    my ($dbh, $ranking_videos) = @_;
+
+    # all_videos
+    my $sth = $dbh->prepare(q{
+        select v.* from videos as v
+        order by v.title
+    });
+    $sth->execute;
+
+    my @all_videos = ();
+    while (my $row = $sth->fetchrow_hashref()){
+        my $path = $row->{url};
+        $path =~ s{.*\/(.*)$}{$1};
+        $row->{path} = $path;
+        push @all_videos, $row;
+    }
+    die $sth->errstr if $sth->err;
+
+    my $tx = Text::Xslate->new(path => $FindBin::Bin);
+
+    my $data = {
+        all_videos => \@all_videos,
+        ranking_videos => $ranking_videos,
+    };
+    mkdir $FindBin::Bin . '/website';
+    my $content = $tx->render('website-template/all.tx.html', $data);
+    my $out_file = $FindBin::Bin . '/website/all.html';
+    open my $out_fh, ">", $out_file
+        or die "Cannot open $out_file for write: $!";
+    print $out_fh encode_utf8($content);
+    close $out_fh;
+}
+
 try {
     use DBI;
     my $dbh = DBI->connect('dbi:SQLite:dbname=' . $FindBin::Bin . '/videos.db', "", "", {PrintError => 1, AutoCommit => 1});
@@ -398,11 +432,12 @@ try {
     create_index_page(\@latest_videos, \@counts, \@ranking_videos);
     create_list_page(\@all_videos, \@ranking_videos);
     create_expired_page(\@expired_videos);
-    create_static_page('search');;
-    create_static_page('recommend');;
-    create_static_page('about');;
+    create_static_page('search');
+    create_static_page('recommend');
+    create_static_page('about');
 
     create_video_pages($dbh);
+    create_all_video_list_pages($dbh, \@ranking_videos);
 
     $dbh->disconnect;
 } catch {
