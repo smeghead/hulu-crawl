@@ -392,6 +392,7 @@ try {
     # video_count
     $sth = $dbh->prepare(q{
         select * from video_counts
+        where date > date('now', '-1 year')
         order by date
     });
     $sth->execute;
